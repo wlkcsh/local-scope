@@ -1,0 +1,12 @@
+{$API_DOMAIN} {
+    encode zstd gzip
+
+    reverse_proxy backend:8000 {
+        # Stream large 70-200 MB .dem uploads directly without buffering
+        flush_interval -1
+        transport http {
+            read_timeout 300s
+            write_timeout 300s
+        }
+    }
+}

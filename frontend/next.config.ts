@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
-const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
+const backendUrl = (process.env.BACKEND_URL || "http://localhost:8000").trim().replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   experimental: {
     middlewareClientMaxBodySize: "1gb",
   },

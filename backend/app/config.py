@@ -2,9 +2,11 @@
 Application configuration management via pydantic-settings per SPEC §1, §4 and Phase 2.
 """
 
+import json
 from pathlib import Path
-from typing import Optional, List
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Annotated, Any, Optional, List
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -23,8 +25,26 @@ class Settings(BaseSettings):
     faceit_download_key: Optional[str] = None
     my_steamid: Optional[str] = None
     api_token: Optional[str] = None
-    cors_origins: List[str] = ["http://localhost:3000"]
+    cors_origins: Annotated[List[str], NoDecode] = ["http://localhost:3000"]
+    cors_origin_regex: Optional[str] = None
     max_dem_bytes: int = 1_500_000_000
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            raw = v.strip()
+            if not raw:
+                return []
+            if raw.startswith("["):
+                parsed = json.loads(raw)
+                if not isinstance(parsed, list):
+                    raise ValueError("CORS_ORIGINS JSON must be an array of origin strings")
+                return [str(o).strip() for o in parsed if str(o).strip()]
+            return [o.strip() for o in raw.split(",") if o.strip()]
+        if isinstance(v, (list, tuple, set)):
+            return [str(o).strip() for o in v if str(o).strip()]
+        return v
 
     @property
     def resolved_data_dir(self) -> Path:

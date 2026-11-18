@@ -1,10 +1,20 @@
 import { MatchRow, MatchDetailResponse, HighlightRow, MistakeRow, IngestJobRow } from "./types";
 
+const stripTrailingSlash = (url: string): string => url.trim().replace(/\/+$/, "");
+
 const getBaseUrl = (): string => {
   if (typeof window !== "undefined") {
     return "";
   }
-  return process.env.BACKEND_URL || "http://localhost:8000";
+  return stripTrailingSlash(process.env.BACKEND_URL || "http://localhost:8000");
+};
+
+export const getUploadBaseUrl = (): string => {
+  const direct = process.env.NEXT_PUBLIC_DIRECT_BACKEND_URL?.trim();
+  if (direct) {
+    return stripTrailingSlash(direct);
+  }
+  return getBaseUrl();
 };
 
 const getHeaders = (init?: HeadersInit): HeadersInit => {
@@ -50,13 +60,17 @@ export async function fetchHighlights(
   steamid?: string
 ): Promise<HighlightRow[]> {
   const baseUrl = getBaseUrl();
-  const url = new URL(`${baseUrl}/api/matches/${encodeURIComponent(matchId)}/highlights`, "http://localhost");
-  if (steamid) url.searchParams.set("steamid", steamid);
+  const params = new URLSearchParams();
+  if (steamid) params.set("steamid", steamid);
+  const query = params.toString();
 
-  const res = await fetch(url.pathname + url.search, {
-    headers: getHeaders(),
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${baseUrl}/api/matches/${encodeURIComponent(matchId)}/highlights${query ? `?${query}` : ""}`,
+    {
+      headers: getHeaders(),
+      cache: "no-store",
+    }
+  );
   if (!res.ok) {
     throw new Error(`Failed to fetch highlights: ${res.statusText}`);
   }
@@ -68,13 +82,17 @@ export async function fetchMistakes(
   steamid?: string
 ): Promise<MistakeRow[]> {
   const baseUrl = getBaseUrl();
-  const url = new URL(`${baseUrl}/api/matches/${encodeURIComponent(matchId)}/mistakes`, "http://localhost");
-  if (steamid) url.searchParams.set("steamid", steamid);
+  const params = new URLSearchParams();
+  if (steamid) params.set("steamid", steamid);
+  const query = params.toString();
 
-  const res = await fetch(url.pathname + url.search, {
-    headers: getHeaders(),
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${baseUrl}/api/matches/${encodeURIComponent(matchId)}/mistakes${query ? `?${query}` : ""}`,
+    {
+      headers: getHeaders(),
+      cache: "no-store",
+    }
+  );
   if (!res.ok) {
     throw new Error(`Failed to fetch mistakes: ${res.statusText}`);
   }
@@ -112,8 +130,8 @@ export async function uploadDemo(file: File): Promise<{ job_id: string }> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const baseUrl = getBaseUrl();
-  const res = await fetch(`${baseUrl}/api/ingest/upload`, {
+  const uploadBaseUrl = getUploadBaseUrl();
+  const res = await fetch(`${uploadBaseUrl}/api/ingest/upload`, {
     method: "POST",
     headers: getHeaders(),
     body: formData,

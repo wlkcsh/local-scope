@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ../../data:/data
+      # Disk-backed scratch volume tuned for EC2 t3.small (2 GB RAM)
+      # so 200+ MB .dem decompression never exhausts RAM.
+      - local_scope_tmp:/tmp/local-scope
+    env_file:
+      - path: ../../.env
+        required: false
+    environment:
+      - DATABASE_URL=sqlite:////data/app.db
+      - DATA_DIR=/data
+      - TMP_DIR=/tmp/local-scope
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - API_DOMAIN=${API_DOMAIN:?Set API_DOMAIN in .env, e.g. 51-20-19-230.sslip.io}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  local_scope_tmp:
+  caddy_data:
+  caddy_config:

@@ -38,9 +38,18 @@ def create_app() -> FastAPI:
     if not explicit_origins:
         explicit_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
+    origin_regex = (
+        settings.cors_origin_regex.strip()
+        if settings.cors_origin_regex and settings.cors_origin_regex.strip()
+        else None
+    )
+    if origin_regex == ".*" or origin_regex == "^.*$":
+        origin_regex = None
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=explicit_origins,
+        allow_origin_regex=origin_regex,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

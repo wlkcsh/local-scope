@@ -113,6 +113,46 @@ docker compose up -d
 
 ---
 
+## 🌐 Hybrid Cloud Deployment (Vercel Frontend + AWS EC2 Backend)
+
+For fast global UI delivery on **Vercel** paired with stateful demo parsing on an **AWS EC2 `t3.small`** (2 GB RAM) instance with free automatic HTTPS via **`sslip.io` + Caddy**:
+
+### 1. Bootstrap AWS EC2 (`t3.small`, Ubuntu 24.04)
+```bash
+git clone https://github.com/your-username/local-scope.git
+cd local-scope
+./deploy/aws/bootstrap.sh
+newgrp docker
+```
+The script installs Docker + Compose, creates a **4 GB swapfile** for safe demo parsing on 2 GB RAM, configures UFW (`22`, `80`, `443`), and prints your exact `API_DOMAIN=<dashed-elastic-ip>.sslip.io`.
+
+### 2. Configure `.env` & Launch Backend + Caddy Auto-HTTPS
+```bash
+cp .env.example .env
+nano .env
+```
+Set at minimum:
+```dotenv
+API_DOMAIN=<your-dashed-elastic-ip>.sslip.io
+CORS_ORIGINS=https://<your-vercel-app>.vercel.app,http://localhost:3000
+CORS_ORIGIN_REGEX=^https://local-scope-[a-z0-9-]+\.vercel\.app$
+API_TOKEN=<your-strong-random-token>
+FACEIT_API_KEY=<your-faceit-api-key>
+```
+Start the backend stack (using disk-backed `/tmp` tuned for `t3.small`):
+```bash
+docker compose --env-file .env -f deploy/aws/docker-compose.backend.yml up -d --build
+curl https://<your-dashed-elastic-ip>.sslip.io/api/health
+```
+
+### 3. Deploy Frontend to Vercel
+Import the repository into **Vercel** with **Root Directory** set to `frontend`, and add these Environment Variables:
+* `BACKEND_URL` = `https://<your-dashed-elastic-ip>.sslip.io`
+* `NEXT_PUBLIC_DIRECT_BACKEND_URL` = `https://<your-dashed-elastic-ip>.sslip.io` *(streams large 70–200 MB `.dem` uploads directly to AWS, bypassing Vercel's 4.5 MB proxy limit)*
+* `API_TOKEN` / `NEXT_PUBLIC_API_TOKEN` = `<same token as AWS backend, if configured>`
+
+---
+
 ## ⚡ Automated n8n Webhook Integration
 
 You can automate match ingestion so that games played at internet cafes or clubs are analyzed automatically without manual action.
