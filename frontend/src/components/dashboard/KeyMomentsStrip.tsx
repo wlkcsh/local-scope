@@ -117,11 +117,11 @@ export function KeyMomentsStrip({
         "No clutches won this match"
       )}
       {renderBucket(
-        "Aces & Multi-Kills",
-        "3K, 4K & Ace impact rounds · click to watch",
+        "Multi-Kills & Aces",
+        "3K, 4K & 5K Ace rounds · click to watch",
         <Flame className="w-3.5 h-3.5 text-rose-400" />,
         multiKills,
-        "No 3K+ rounds recorded"
+        "No 3K, 4K, or 5K Ace rounds recorded"
       )}
       {renderBucket(
         "Unique Kills",
