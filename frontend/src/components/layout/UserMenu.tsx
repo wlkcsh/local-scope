@@ -141,11 +141,17 @@ export function UserMenu() {
 
           <form onSubmit={handleSaveProfile} className="space-y-3">
             <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">
+              <label
+                htmlFor="profile-display-name"
+                className="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1"
+              >
                 Display Name
               </label>
               <input
+                id="profile-display-name"
+                name="name"
                 type="text"
+                autoComplete="nickname"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg bg-obsidian-card border border-obsidian-border text-xs font-mono text-white focus:outline-none focus:border-rust"
@@ -154,11 +160,18 @@ export function UserMenu() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">
+              <label
+                htmlFor="profile-steamid"
+                className="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1"
+              >
                 Public SteamID64 (Optional)
               </label>
               <input
+                id="profile-steamid"
+                name="steamid"
                 type="text"
+                autoComplete="off"
+                inputMode="numeric"
                 value={steamid}
                 onChange={(e) => setSteamid(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg bg-obsidian-card border border-obsidian-border text-xs font-mono text-white focus:outline-none focus:border-rust"

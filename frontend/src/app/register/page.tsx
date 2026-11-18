@@ -65,26 +65,40 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1">
+              <label
+                htmlFor="reg-username"
+                className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1"
+              >
                 Username *
               </label>
               <input
+                id="reg-username"
+                name="username"
                 type="text"
                 required
                 autoComplete="username"
+                spellCheck={false}
+                autoCapitalize="none"
+                autoCorrect="off"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-obsidian-card border border-obsidian-border text-sm font-mono text-white focus:outline-none focus:border-rust"
-                placeholder="ly1ssss"
+                placeholder="e.g. ly1ssss"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1">
+              <label
+                htmlFor="reg-display-name"
+                className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1"
+              >
                 Display Name
               </label>
               <input
+                id="reg-display-name"
+                name="name"
                 type="text"
+                autoComplete="nickname"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-obsidian-card border border-obsidian-border text-sm font-mono text-white focus:outline-none focus:border-rust"
@@ -94,10 +108,15 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1">
+            <label
+              htmlFor="reg-password"
+              className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1"
+            >
               Password * (min 6 chars)
             </label>
             <input
+              id="reg-password"
+              name="password"
               type="password"
               required
               minLength={6}
@@ -110,11 +129,18 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1">
+            <label
+              htmlFor="reg-steamid"
+              className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1"
+            >
               Public SteamID64 (Optional)
             </label>
             <input
+              id="reg-steamid"
+              name="steamid"
               type="text"
+              autoComplete="off"
+              inputMode="numeric"
               value={steamid}
               onChange={(e) => setSteamid(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-obsidian-card border border-obsidian-border text-sm font-mono text-white focus:outline-none focus:border-rust"
@@ -127,13 +153,19 @@ export default function RegisterPage() {
 
           {inviteRequired && (
             <div>
-              <label className="block text-[11px] font-mono uppercase tracking-wider text-amber-400 mb-1 flex items-center gap-1">
+              <label
+                htmlFor="reg-invite"
+                className="block text-[11px] font-mono uppercase tracking-wider text-amber-400 mb-1 flex items-center gap-1"
+              >
                 <KeyRound className="w-3 h-3" />
                 Club Invite Code *
               </label>
               <input
+                id="reg-invite"
+                name="invite_code"
                 type="text"
                 required
+                autoComplete="off"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-obsidian-card border border-amber-500/40 text-sm font-mono text-white focus:outline-none focus:border-rust"

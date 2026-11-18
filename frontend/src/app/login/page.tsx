@@ -54,13 +54,21 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">
+            <label
+              htmlFor="login-username"
+              className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1.5"
+            >
               Username
             </label>
             <input
+              id="login-username"
+              name="username"
               type="text"
               required
               autoComplete="username"
+              spellCheck={false}
+              autoCapitalize="none"
+              autoCorrect="off"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-card border border-obsidian-border text-sm font-mono text-white focus:outline-none focus:border-rust"
@@ -69,10 +77,15 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">
+            <label
+              htmlFor="login-password"
+              className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1.5"
+            >
               Password
             </label>
             <input
+              id="login-password"
+              name="password"
               type="password"
               required
               autoComplete="current-password"
