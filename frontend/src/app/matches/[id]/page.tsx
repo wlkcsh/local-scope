@@ -62,9 +62,14 @@ export default async function MatchDashboardPage({
         teamBName={match.team_b_name}
       />
 
-      {/* 3. MatchInsights (MVP Spotlight & Stat Leaders) */}
+      {/* 3. MatchInsights (MVP Spotlight, Honors, Key Moments & Team Macro) */}
       <MatchInsights
+        matchId={match.id}
         playerStats={player_stats}
+        roundsTotal={match.rounds_total}
+        highlights={highlights}
+        mistakes={mistakes}
+        focusedSteamid={focusedSteamid}
         teamAName={match.team_a_name}
         teamBName={match.team_b_name}
       />
@@ -81,6 +86,10 @@ export default async function MatchDashboardPage({
       <Scoreboard
         playerStats={player_stats}
         selectedSteamid={focusedSteamid}
+        teamAName={match.team_a_name}
+        teamBName={match.team_b_name}
+        scoreA={match.score_a}
+        scoreB={match.score_b}
       />
 
       {/* 5. MechanicsPanel (Telemetry for focused player) */}
