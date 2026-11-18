@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle, FileUp } from "lucide-react";
+import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle, FileUp, ArrowRight } from "lucide-react";
 import { ingestSource, uploadDemo, fetchJobStatus } from "@/lib/api";
 import { IngestJobRow } from "@/lib/types";
 
@@ -98,10 +98,10 @@ export function IngestForm() {
   };
 
   return (
-    <div className="bg-surface rounded-2xl border border-surface-border p-6 shadow-xl">
+    <div className="bg-obsidian-surface rounded-2xl border border-obsidian-border p-6 shadow-xl">
       <div className="flex flex-col gap-1 mb-5">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <LinkIcon className="w-5 h-5 text-cs2-ct" />
+          <LinkIcon className="w-5 h-5 text-rust" />
           Ingest CS2 Match Demo
         </h2>
         <p className="text-xs text-slate-400">
@@ -118,19 +118,19 @@ export function IngestForm() {
             onChange={(e) => setSourceUrl(e.target.value)}
             disabled={loading}
             placeholder="https://www.faceit.com/en/cs2/room/1-..."
-            className="w-full bg-surface-subtle border border-surface-border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cs2-ct transition-colors disabled:opacity-50"
+            className="w-full bg-obsidian-card border border-obsidian-border rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-rust transition-colors disabled:opacity-50"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading || !sourceUrl.trim()}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-cs2-ct hover:bg-blue-600 disabled:opacity-50 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex-shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-obsidian-subtle disabled:border disabled:border-obsidian-border disabled:text-slate-400 disabled:shadow-none bg-rust hover:bg-rust-hover text-white shadow-lg shadow-rust/20 active:scale-95 cursor-pointer"
         >
           {loading && activeJob?.status !== "done" ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <CheckCircle2 className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" />
           )}
           <span>{loading ? "Analyzing..." : "Analyze Match"}</span>
         </button>
@@ -146,8 +146,8 @@ export function IngestForm() {
           onClick={() => fileInputRef.current?.click()}
           className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
             dragActive
-              ? "border-cs2-ct bg-blue-950/20"
-              : "border-surface-border hover:border-slate-500 bg-surface-subtle/50"
+              ? "border-rust bg-rust-subtle"
+              : "border-obsidian-border hover:border-rust bg-obsidian-subtle/50"
           }`}
         >
           <input
@@ -157,10 +157,10 @@ export function IngestForm() {
             onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
             className="hidden"
           />
-          <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-            <FileUp className="w-4 h-4 text-slate-300" />
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-400 font-mono">
+            <FileUp className="w-4 h-4 text-slate-400" />
             <span>
-              Or <span className="text-cs2-ct font-semibold underline">drag and drop</span> a local .dem / .dem.gz file here
+              Or <span className="text-rust font-semibold underline">drag and drop</span> a local .dem / .dem.gz file here
             </span>
           </div>
         </div>
@@ -168,15 +168,15 @@ export function IngestForm() {
 
       {/* Active Job Status / Progress */}
       {activeJob && (
-        <div className="mt-4 p-4 rounded-xl bg-surface-subtle border border-surface-border">
-          <div className="flex items-center justify-between text-xs">
+        <div className="mt-4 p-4 rounded-xl bg-obsidian-subtle border border-obsidian-border">
+          <div className="flex items-center justify-between text-xs font-mono">
             <div className="flex items-center gap-2 font-medium">
               {activeJob.status === "done" ? (
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               ) : activeJob.status === "error" ? (
                 <AlertCircle className="w-4 h-4 text-rose-400" />
               ) : (
-                <Loader2 className="w-4 h-4 text-cs2-ct animate-spin" />
+                <Loader2 className="w-4 h-4 text-rust animate-spin" />
               )}
               <span className="text-white font-semibold capitalize">
                 {activeJob.status === "downloading"
