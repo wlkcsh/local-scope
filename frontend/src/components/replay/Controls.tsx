@@ -17,6 +17,7 @@ import { useReplayStore } from "@/lib/store";
 import { ReplayFile } from "@/lib/types";
 import { DecodedRound } from "@/lib/replay/decode";
 import { ReplayClock } from "@/lib/replay/clock";
+import { TacticalSelect, TacticalSelectOption } from "@/components/ui/TacticalSelect";
 import { hasMultiLayer } from "@/lib/replay/project";
 
 interface ControlsProps {
@@ -303,18 +304,20 @@ export function Controls({
           {/* Round Selector Dropdown */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">Round:</span>
-            <select
-              value={roundIdx}
-              aria-label="Select round"
-              onChange={(e) => onSelectRound(parseInt(e.target.value, 10))}
-              className="bg-obsidian-surface border border-obsidian-border text-white text-xs font-mono font-semibold py-1.5 px-3 rounded-lg focus:outline-none focus:border-rust cursor-pointer"
-            >
-              {replay.rounds.map((r, i) => (
-                <option key={r.n} value={i} className="bg-obsidian-deep">
-                  Round {r.n} ({r.winner} win • {r.score[0]}:{r.score[1]})
-                </option>
-              ))}
-            </select>
+            <TacticalSelect
+              value={String(roundIdx)}
+              ariaLabel="Select round"
+              placement="top"
+              align="right"
+              minMenuWidth={240}
+              onChange={(val) => onSelectRound(parseInt(val, 10))}
+              options={replay.rounds.map((r, i): TacticalSelectOption => ({
+                value: String(i),
+                label: `Round ${r.n}`,
+                hint: `${r.winner} win · ${r.score[0]}:${r.score[1]}`,
+                dotClassName: r.winner === "CT" ? "bg-cs2-ct" : "bg-cs2-t",
+              }))}
+            />
           </div>
 
           {/* Upper/Lower Layer Toggle (Nuke/Vertigo) */}

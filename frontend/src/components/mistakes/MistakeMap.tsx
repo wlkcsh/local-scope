@@ -6,6 +6,7 @@ import { Layers, MapPin, Filter } from "lucide-react";
 import { MistakeRow, PlayerMatchStatRow } from "@/lib/types";
 import { getRadarImageUrl, hasMultiLayer } from "@/lib/replay/project";
 import { MistakePin } from "./MistakePin";
+import { TacticalSelect, TacticalSelectOption } from "@/components/ui/TacticalSelect";
 
 interface MistakeMapProps {
   mapName: string;
@@ -82,20 +83,58 @@ export function MistakeMap({
           )}
 
           {/* Type filter */}
-          <div className="flex items-center gap-1 bg-obsidian-surface border border-obsidian-border rounded p-0.5">
-            <Filter className="w-3.5 h-3.5 text-slate-400 ml-1.5" />
-            <select
-              value={filterType}
-              aria-label="Filter mistakes by type"
-              onChange={(e) => setFilterType(e.target.value)}
-              className="bg-transparent text-slate-300 py-0.5 px-2 text-xs font-mono focus:outline-none cursor-pointer"
-            >
-              <option value="all" className="bg-obsidian-deep">ALL ANOMALIES</option>
-              <option value="unspent_utility" className="bg-obsidian-deep">UNSPENT UTILITY ($500+)</option>
-              <option value="team_flash" className="bg-obsidian-deep">TEAM FLASHES (&gt;1.5s)</option>
-              <option value="untraded_early_death" className="bg-obsidian-deep">UNTRADED DEATHS (&lt;15s)</option>
-            </select>
-          </div>
+          <TacticalSelect
+            value={filterType}
+            ariaLabel="Filter mistakes by type"
+            onChange={(val) => setFilterType(val)}
+            icon={<Filter className="w-3.5 h-3.5" />}
+            minMenuWidth={265}
+            options={((): TacticalSelectOption[] => {
+              const scoped = onlyFocused && focusedSteamid
+                ? mistakes.filter((m) => m.steamid === focusedSteamid)
+                : mistakes;
+              const count = (t: string) =>
+                t === "all" ? scoped.length : scoped.filter((m) => m.type === t).length;
+              return [
+                { value: "all", label: "ALL ANOMALIES", badge: String(count("all")) },
+                {
+                  value: "unspent_utility",
+                  label: "UNSPENT UTILITY",
+                  hint: "$500+",
+                  dotClassName: "bg-amber-500",
+                  badge: String(count("unspent_utility")),
+                },
+                {
+                  value: "team_flash",
+                  label: "TEAM FLASHES",
+                  hint: ">1.5s",
+                  dotClassName: "bg-purple-500",
+                  badge: String(count("team_flash")),
+                },
+                {
+                  value: "untraded_early_death",
+                  label: "UNTRADED DEATHS",
+                  hint: "<15s",
+                  dotClassName: "bg-rose-500",
+                  badge: String(count("untraded_early_death")),
+                },
+                {
+                  value: "died_holding_utility",
+                  label: "HOLDING UTILITY",
+                  hint: "CAUGHT",
+                  dotClassName: "bg-orange-500",
+                  badge: String(count("died_holding_utility")),
+                },
+                {
+                  value: "self_flash_death",
+                  label: "SELF-FLASH DEATH",
+                  hint: ">1.0s",
+                  dotClassName: "bg-yellow-500",
+                  badge: String(count("self_flash_death")),
+                },
+              ];
+            })()}
+          />
 
           {/* Multi-layer Toggle (Nuke, Vertigo) */}
           {supportsMultiLayer && (

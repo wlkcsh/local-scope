@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Sparkles, Filter } from "lucide-react";
 import { HighlightRow, PlayerMatchStatRow } from "@/lib/types";
 import { HighlightCard } from "./HighlightCard";
+import { TacticalSelect, TacticalSelectOption } from "@/components/ui/TacticalSelect";
 
 interface HighlightReelProps {
   highlights: HighlightRow[];
@@ -69,24 +70,30 @@ export function HighlightReel({
             </button>
           )}
 
-          <div className="flex items-center gap-1 bg-obsidian-surface border border-obsidian-border rounded p-0.5">
-            <Filter className="w-3.5 h-3.5 text-slate-400 ml-1.5" />
-            <select
-              value={filterType}
-              aria-label="Filter highlights by type"
-              onChange={(e) => setFilterType(e.target.value)}
-              className="bg-transparent text-slate-300 py-0.5 px-2 text-xs font-mono focus:outline-none cursor-pointer"
-            >
-              <option value="all" className="bg-obsidian-deep">ALL HIGHLIGHTS</option>
-              <option value="ace" className="bg-obsidian-deep">ACES</option>
-              <option value="4k" className="bg-obsidian-deep">4Ks</option>
-              <option value="3k" className="bg-obsidian-deep">3Ks</option>
-              <option value="clutch" className="bg-obsidian-deep">CLUTCHES</option>
-              <option value="spray_transfer" className="bg-obsidian-deep">SPRAY TRANSFERS</option>
-              <option value="wallbang" className="bg-obsidian-deep">WALLBANGS</option>
-              <option value="noscope" className="bg-obsidian-deep">NOSCOPES</option>
-            </select>
-          </div>
+          <TacticalSelect
+            value={filterType}
+            ariaLabel="Filter highlights by type"
+            onChange={(val) => setFilterType(val)}
+            icon={<Filter className="w-3.5 h-3.5" />}
+            minMenuWidth={230}
+            options={((): TacticalSelectOption[] => {
+              const scoped = onlyFocused && focusedSteamid
+                ? highlights.filter((h) => h.steamid === focusedSteamid)
+                : highlights;
+              const count = (t: string) =>
+                t === "all" ? scoped.length : scoped.filter((h) => h.type === t).length;
+              return [
+                { value: "all", label: "ALL HIGHLIGHTS", badge: String(count("all")) },
+                { value: "ace", label: "ACES", dotClassName: "bg-amber-500", badge: String(count("ace")) },
+                { value: "4k", label: "4Ks", dotClassName: "bg-amber-400", badge: String(count("4k")) },
+                { value: "3k", label: "3Ks", dotClassName: "bg-rust", badge: String(count("3k")) },
+                { value: "clutch", label: "CLUTCHES", dotClassName: "bg-emerald-500", badge: String(count("clutch")) },
+                { value: "spray_transfer", label: "SPRAY TRANSFERS", dotClassName: "bg-sky-400", badge: String(count("spray_transfer")) },
+                { value: "wallbang", label: "WALLBANGS", dotClassName: "bg-rose-500", badge: String(count("wallbang")) },
+                { value: "noscope", label: "NOSCOPES", dotClassName: "bg-purple-400", badge: String(count("noscope")) },
+              ];
+            })()}
+          />
         </div>
       </div>
 

@@ -49,7 +49,21 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* View Transition API: Circular Theme Reveal (scoped to theme toggle) */
+:root.theme-transitioning::view-transition-old(root),
+:root.theme-transitioning::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+:root.theme-transitioning::view-transition-old(root) {
+  z-index: 1;
+}
+
+:root.theme-transitioning::view-transition-new(root) {
+  z-index: 9999;
 }
 
 html.editorial body {
@@ -268,6 +282,27 @@ html.editorial .bg-rust:hover {
 
 html.editorial .bg-obsidian-surface\/85 {
   background-color: rgba(247, 242, 231, 0.94) !important;
+}
+
+/* Custom TacticalSelect popover elevation & subtle entry motion */
+.tactical-select-menu {
+  animation: tactical-menu-fade 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 18px 42px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+html.editorial .tactical-select-menu {
+  background-color: #FAF6EE !important;
+  border-color: rgba(67, 40, 42, 0.22) !important;
+  box-shadow: 0 18px 40px -12px rgba(67, 40, 42, 0.24), 0 4px 12px -4px rgba(67, 40, 42, 0.10) !important;
+}
+
+@keyframes tactical-menu-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 html.editorial ::-webkit-scrollbar-track {
