@@ -145,6 +145,7 @@ def register(
         is_admin=is_admin,
     )
     db.add(user)
+    db.flush()  # Flush User row into SQLite before updating foreign keys in matches
 
     if is_admin:
         # Claim unowned legacy matches
