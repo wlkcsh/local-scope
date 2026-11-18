@@ -1,7 +1,9 @@
 import React from "react";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { fetchReplay } from "@/lib/api";
+import { fetchReplay, fetchMe } from "@/lib/api";
 import { ReplayPlayer } from "@/components/replay/ReplayPlayer";
 
 interface ReplayPageProps {
@@ -18,12 +20,19 @@ export default async function ReplayViewerPage({
   const { id } = await params;
   const { round = "1", tick } = await searchParams;
 
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
   let replay = null;
   let errorMsg = null;
 
   try {
-    replay = await fetchReplay(id);
+    replay = await fetchReplay(id, cookieHeader);
   } catch (err: any) {
+    const user = await fetchMe(cookieHeader).catch(() => null);
+    if (!user) {
+      redirect(`/login?next=/matches/${encodeURIComponent(id)}/replay`);
+    }
     console.error(`Replay page failed to fetch replay for ${id}:`, err);
     errorMsg = err.message || "Failed to load replay file from backend";
   }

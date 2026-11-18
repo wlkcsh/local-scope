@@ -12,6 +12,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [nextParam, setNextParam] = useState<string>("");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const n = new URLSearchParams(window.location.search).get("next");
+      if (n) setNextParam(n);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +27,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await loginUser(username.trim(), password);
-      window.location.href = "/";
+      const next = nextParam || "/";
+      window.location.href = next;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Sign in failed");
       setLoading(false);
@@ -37,7 +46,9 @@ export default function LoginPage() {
             Sign In
           </h1>
           <p className="text-xs text-slate-400 font-sans">
-            Access your private CS2 match library, 2D replays, and teammate demos.
+            {nextParam
+              ? "Sign in to access this private tactical match dossier."
+              : "Access your private CS2 match library, 2D replays, and teammate demos."}
           </p>
         </div>
 
@@ -92,7 +103,10 @@ export default function LoginPage() {
 
         <div className="pt-4 border-t border-obsidian-border flex items-center justify-between text-xs font-mono">
           <span className="text-slate-400">New to the squad?</span>
-          <Link href="/register" className="text-rust font-bold hover:underline">
+          <Link
+            href={nextParam ? `/register?next=${encodeURIComponent(nextParam)}` : "/register"}
+            className="text-rust font-bold hover:underline"
+          >
             Create Account →
           </Link>
         </div>

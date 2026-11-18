@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [steamid, setSteamid] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [inviteRequired, setInviteRequired] = useState(false);
+  const [nextParam, setNextParam] = useState<string>("");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,10 @@ export default function RegisterPage() {
     fetchAuthConfig()
       .then((cfg) => setInviteRequired(Boolean(cfg.invite_required)))
       .catch(() => {});
+    if (typeof window !== "undefined") {
+      const n = new URLSearchParams(window.location.search).get("next");
+      if (n) setNextParam(n);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +39,8 @@ export default function RegisterPage() {
         steamid: steamid.trim() || undefined,
         invite_code: inviteCode.trim() || undefined,
       });
-      window.location.href = "/";
+      const next = nextParam || "/";
+      window.location.href = next;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed");
       setLoading(false);
@@ -155,7 +161,10 @@ export default function RegisterPage() {
 
         <div className="pt-4 border-t border-obsidian-border flex items-center justify-between text-xs font-mono">
           <span className="text-slate-400">Already have an account?</span>
-          <Link href="/login" className="text-rust font-bold hover:underline">
+          <Link
+            href={nextParam ? `/login?next=${encodeURIComponent(nextParam)}` : "/login"}
+            className="text-rust font-bold hover:underline"
+          >
             Sign In →
           </Link>
         </div>
