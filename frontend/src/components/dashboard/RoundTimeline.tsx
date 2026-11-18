@@ -148,12 +148,15 @@ export function RoundTimeline({
                 </div>
               </Link>
 
-              {/* MR12 Half-time separator */}
+              {/* MR12 Half-time side swap separator */}
               {isHalfTime && (
-                <div className="flex flex-col items-center justify-center px-1.5">
+                <div
+                  className="flex flex-col items-center justify-center px-1.5"
+                  title="Halftime Side Swap (CT ↔ T)"
+                >
                   <div className="w-[1px] h-9 bg-rust/50" />
                   <span className="font-mono text-[9px] font-bold text-rust uppercase tracking-wider mt-0.5">
-                    Half
+                    Swap
                   </span>
                 </div>
               )}

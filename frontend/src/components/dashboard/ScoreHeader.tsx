@@ -87,14 +87,17 @@ export function ScoreHeader({ match }: ScoreHeaderProps) {
               <span className="text-xl sm:text-2xl font-display font-semibold text-white tracking-wide uppercase">
                 {match.team_a_name}
               </span>
+              <span className="text-[10px] font-mono font-semibold text-slate-400 px-1.5 py-0.5 rounded bg-obsidian-subtle border border-obsidian-border uppercase">
+                {match.team_a_first_side} 1st
+              </span>
             </div>
 
             <div className="flex items-baseline gap-2 px-5 py-1.5 rounded-xl bg-obsidian-subtle border border-obsidian-border text-3xl sm:text-4xl font-display font-bold">
-              <span className={match.score_a > match.score_b ? "text-emerald-400" : "text-white"}>
+              <span className={match.score_a >= match.score_b ? "text-white font-extrabold" : "text-slate-400 font-medium"}>
                 {match.score_a}
               </span>
-              <span className="text-slate-600 font-mono text-xl mx-0.5">:</span>
-              <span className={match.score_b > match.score_a ? "text-emerald-400" : "text-white"}>
+              <span className="text-slate-500 font-mono text-xl mx-0.5">:</span>
+              <span className={match.score_b >= match.score_a ? "text-white font-extrabold" : "text-slate-400 font-medium"}>
                 {match.score_b}
               </span>
             </div>
@@ -103,6 +106,9 @@ export function ScoreHeader({ match }: ScoreHeaderProps) {
               <div className="w-3 h-3 rounded-full bg-cs2-t" />
               <span className="text-xl sm:text-2xl font-display font-semibold text-white tracking-wide uppercase">
                 {match.team_b_name}
+              </span>
+              <span className="text-[10px] font-mono font-semibold text-slate-400 px-1.5 py-0.5 rounded bg-obsidian-subtle border border-obsidian-border uppercase">
+                {match.team_a_first_side === "CT" ? "T" : "CT"} 1st
               </span>
             </div>
           </div>

@@ -370,7 +370,7 @@ export function RadarCanvas({ replay, decodedRound, clock }: RadarCanvasProps) {
         />
 
         {/* Floating Canvas Controls (Zoom & Reset) */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1 p-1 rounded-lg bg-obsidian-surface/90 border border-obsidian-border backdrop-blur-md shadow-lg z-20">
+        <div className="radar-overlay-dark absolute bottom-3 right-3 flex items-center gap-1 p-1 rounded-lg bg-[#12161e]/90 border border-white/15 backdrop-blur-md shadow-lg z-20">
           <button
             onClick={handleZoomIn}
             title="Zoom In"

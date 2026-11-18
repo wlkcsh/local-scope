@@ -16,23 +16,31 @@
   --color-rust-subtle: rgba(217, 119, 54, 0.15);
   --color-rust-hover: #e58e26;
   --color-rust-border: rgba(217, 119, 54, 0.35);
+  --color-cs2-t: #E58E26;
+  --color-cs2-ct: #4A90E2;
+  --color-cs2-win: #2ECC71;
+  --color-cs2-loss: #E74C3C;
 }
 
-/* Editorial Archive (Warm Cream Paper, Deep Plum Ink, Rust) */
+/* Editorial Archive (Warm Linen Paper, Crisp Ivory Cards, Deep Print Inks) */
 html.editorial {
-  --background: #ECE3D1;
+  --background: #EAE1CE;
   --foreground: #43282A;
-  --bg-obsidian-deep: #ECE3D1;
-  --bg-obsidian-surface: #EDE4D2;
-  --bg-obsidian-card: #E6DCC8;
-  --bg-obsidian-subtle: #DFD5C0;
-  --border-obsidian: rgba(67, 40, 42, 0.16);
-  --border-obsidian-hover: rgba(67, 40, 42, 0.30);
-  --border-obsidian-active: rgba(67, 40, 42, 0.50);
-  --color-rust: #A86438;
-  --color-rust-subtle: rgba(168, 100, 56, 0.12);
-  --color-rust-hover: #8F522A;
-  --color-rust-border: rgba(168, 100, 56, 0.35);
+  --bg-obsidian-deep: #EAE1CE;
+  --bg-obsidian-surface: #F7F2E7;
+  --bg-obsidian-card: #F3ECE0;
+  --bg-obsidian-subtle: #E5DBC7;
+  --border-obsidian: rgba(67, 40, 42, 0.15);
+  --border-obsidian-hover: rgba(67, 40, 42, 0.28);
+  --border-obsidian-active: rgba(67, 40, 42, 0.48);
+  --color-rust: #9A552A;
+  --color-rust-subtle: rgba(154, 85, 42, 0.12);
+  --color-rust-hover: #7D431F;
+  --color-rust-border: rgba(154, 85, 42, 0.35);
+  --color-cs2-t: #B45309;
+  --color-cs2-ct: #1D4ED8;
+  --color-cs2-win: #157347;
+  --color-cs2-loss: #BE123C;
 }
 
 body {
@@ -45,111 +53,221 @@ body {
 }
 
 html.editorial body {
-  background-color: #ECE3D1;
+  background-color: #EAE1CE;
   color: #43282A;
 }
 
 html.editorial .tactical-grain {
   mix-blend-mode: multiply;
-  opacity: 0.38;
+  opacity: 0.30;
 }
 
-/* Editorial Archive Cards & Surfaces */
-html.editorial .bg-obsidian-card,
-html.editorial [class*="bg-obsidian-card"] {
-  background-color: #E6DCC8 !important;
-  border-color: rgba(67, 40, 42, 0.16) !important;
-}
-
+/* Editorial Archive 3-Tier Surface Elevation */
 html.editorial .bg-obsidian-surface,
-html.editorial [class*="bg-obsidian-surface"] {
-  background-color: #EDE4D2 !important;
-  border-color: rgba(67, 40, 42, 0.16) !important;
+html.editorial [class*="bg-obsidian-surface"]:not(.radar-overlay-dark) {
+  background-color: #F7F2E7 !important;
+  border-color: rgba(67, 40, 42, 0.14) !important;
+}
+
+html.editorial .bg-obsidian-card,
+html.editorial [class*="bg-obsidian-card"]:not(.radar-overlay-dark) {
+  background-color: #F3ECE0 !important;
+  border-color: rgba(67, 40, 42, 0.15) !important;
 }
 
 html.editorial .bg-obsidian-subtle,
-html.editorial [class*="bg-obsidian-subtle"] {
-  background-color: #DFD5C0 !important;
+html.editorial [class*="bg-obsidian-subtle"]:not(.radar-overlay-dark) {
+  background-color: #E5DBC7 !important;
   border-color: rgba(67, 40, 42, 0.16) !important;
+}
+
+html.editorial .bg-obsidian-deep,
+html.editorial [class*="bg-obsidian-deep"]:not(.radar-overlay-dark) {
+  background-color: #EAE1CE !important;
 }
 
 html.editorial .bg-surface,
-html.editorial [class*="bg-surface"] {
-  background-color: #EDE4D2 !important;
-  border-color: rgba(67, 40, 42, 0.16) !important;
+html.editorial [class*="bg-surface"]:not(.radar-overlay-dark) {
+  background-color: #F7F2E7 !important;
+  border-color: rgba(67, 40, 42, 0.14) !important;
 }
 
 html.editorial .border-obsidian-border,
-html.editorial [class*="border-obsidian-border"] {
-  border-color: rgba(67, 40, 42, 0.16) !important;
+html.editorial [class*="border-obsidian-border"]:not(.radar-overlay-dark) {
+  border-color: rgba(67, 40, 42, 0.15) !important;
 }
 
 /* Typography ink in Editorial mode */
-html.editorial .text-white {
+html.editorial .text-white:not(.radar-overlay-dark):not(.radar-overlay-dark *):not(.bg-rust):not(.bg-rust *) {
   color: #43282A !important;
 }
 
-html.editorial .text-slate-100,
-html.editorial .text-slate-200,
-html.editorial .text-slate-300 {
+html.editorial .text-slate-100:not(.radar-overlay-dark *),
+html.editorial .text-slate-200:not(.radar-overlay-dark *),
+html.editorial .text-slate-300:not(.radar-overlay-dark *) {
   color: #43282A !important;
 }
 
-html.editorial .text-slate-400 {
+html.editorial .text-slate-400:not(.radar-overlay-dark *) {
   color: rgba(67, 40, 42, 0.72) !important;
 }
 
-html.editorial .text-slate-500 {
-  color: rgba(67, 40, 42, 0.55) !important;
+html.editorial .text-slate-500:not(.radar-overlay-dark *) {
+  color: rgba(67, 40, 42, 0.58) !important;
 }
 
-html.editorial .text-slate-600 {
-  color: rgba(67, 40, 42, 0.40) !important;
+html.editorial .text-slate-600:not(.radar-overlay-dark *) {
+  color: rgba(67, 40, 42, 0.44) !important;
+}
+
+/* WCAG AA Editorial Print-Ink Semantic Remappings (≥ 5:1 on #F7F2E7 ivory) */
+html.editorial .text-emerald-400,
+html.editorial .text-emerald-300 {
+  color: #157347 !important;
+}
+
+html.editorial .text-amber-400,
+html.editorial .text-amber-300,
+html.editorial .text-yellow-400,
+html.editorial .text-yellow-300 {
+  color: #B45309 !important;
+}
+
+html.editorial .text-sky-400,
+html.editorial .text-sky-300,
+html.editorial .text-blue-400,
+html.editorial .text-blue-300,
+html.editorial .text-cyan-400 {
+  color: #1D4ED8 !important;
+}
+
+html.editorial .text-rose-400,
+html.editorial .text-rose-300,
+html.editorial .text-red-400 {
+  color: #BE123C !important;
+}
+
+html.editorial .text-purple-400 {
+  color: #6D28D9 !important;
+}
+
+html.editorial .text-orange-400 {
+  color: #C2410C !important;
 }
 
 /* Interactive elements in Editorial mode */
-html.editorial .hover\:text-white:hover {
+html.editorial .hover\:text-white:hover:not(.radar-overlay-dark *) {
   color: #43282A !important;
 }
 
 html.editorial .label-rust {
-  color: #A86438 !important;
+  color: #9A552A !important;
 }
 
 html.editorial .bg-rust-subtle {
-  background-color: rgba(168, 100, 56, 0.12) !important;
-  color: #A86438 !important;
+  background-color: rgba(154, 85, 42, 0.12) !important;
+  color: #9A552A !important;
+}
+
+/* Option A: Editorial Tinted Active Selection Pills & Team Badges */
+html.editorial .bg-blue-950\/50,
+html.editorial .bg-blue-950\/60,
+html.editorial .bg-sky-950\/40 {
+  background-color: rgba(29, 78, 216, 0.11) !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.12) !important;
+}
+
+html.editorial .bg-amber-950\/50,
+html.editorial .bg-amber-950\/60,
+html.editorial .bg-amber-950\/40 {
+  background-color: rgba(180, 83, 9, 0.12) !important;
+  border-color: #B45309 !important;
+  box-shadow: 0 2px 10px rgba(180, 83, 9, 0.12) !important;
 }
 
 html.editorial .bg-sky-950\/20 {
-  background-color: rgba(74, 144, 226, 0.16) !important;
-  border-color: rgba(74, 144, 226, 0.40) !important;
+  background-color: rgba(29, 78, 216, 0.10) !important;
+  border-color: rgba(29, 78, 216, 0.35) !important;
 }
 
 html.editorial .bg-amber-950\/20 {
-  background-color: rgba(217, 119, 54, 0.16) !important;
-  border-color: rgba(217, 119, 54, 0.40) !important;
+  background-color: rgba(180, 83, 9, 0.10) !important;
+  border-color: rgba(180, 83, 9, 0.35) !important;
+}
+
+html.editorial .bg-blue-500\/20 {
+  background-color: rgba(29, 78, 216, 0.14) !important;
+}
+
+html.editorial .bg-amber-500\/20,
+html.editorial .bg-amber-500\/15 {
+  background-color: rgba(180, 83, 9, 0.14) !important;
+}
+
+html.editorial .bg-emerald-500\/15 {
+  background-color: rgba(21, 115, 71, 0.12) !important;
+  border-color: rgba(21, 115, 71, 0.32) !important;
+}
+
+html.editorial .bg-rose-500\/15 {
+  background-color: rgba(190, 18, 60, 0.11) !important;
+  border-color: rgba(190, 18, 60, 0.30) !important;
+}
+
+html.editorial .bg-emerald-500 {
+  background-color: #157347 !important;
+}
+
+html.editorial .bg-amber-500,
+html.editorial .bg-amber-400 {
+  background-color: #B45309 !important;
+}
+
+html.editorial .bg-sky-400,
+html.editorial .bg-blue-500 {
+  background-color: #1D4ED8 !important;
+}
+
+html.editorial .bg-rose-500 {
+  background-color: #BE123C !important;
 }
 
 html.editorial .text-sky-200 {
-  color: #1e40af !important;
+  color: #1E3A8A !important;
 }
 
 html.editorial .text-amber-200 {
-  color: #92400e !important;
+  color: #78350F !important;
+}
+
+/* Dark radar canvas inner overlays remain crisp obsidian in Paper mode */
+html.editorial .radar-overlay-dark {
+  background-color: rgba(18, 22, 30, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #E6EDF3 !important;
+}
+
+html.editorial .radar-overlay-dark button {
+  color: #CBD5E1 !important;
+}
+
+html.editorial .radar-overlay-dark button:hover {
+  color: #FFFFFF !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
 }
 
 /* Launch 2D replay button on cream paper */
 html.editorial .bg-rust {
-  background-color: #A86438 !important;
-  color: #ECE3D1 !important;
+  background-color: #9A552A !important;
+  color: #F7F2E7 !important;
 }
 html.editorial .bg-rust:hover {
-  background-color: #8C512C !important;
+  background-color: #7D431F !important;
 }
 
 html.editorial .bg-obsidian-surface\/85 {
-  background-color: rgba(237, 228, 210, 0.90) !important;
+  background-color: rgba(247, 242, 231, 0.94) !important;
 }
 
 html.editorial ::-webkit-scrollbar-track {

@@ -42,8 +42,8 @@ export function PlayerSelect({
         className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all ${
           isSelected
             ? isTeamA
-              ? "bg-blue-950/50 border-blue-500/80 text-white shadow-lg shadow-blue-950/40 ring-1 ring-blue-500/40"
-              : "bg-amber-950/50 border-amber-500/80 text-white shadow-lg shadow-amber-950/40 ring-1 ring-amber-500/40"
+              ? "bg-blue-950/50 border-blue-500 text-white shadow-md shadow-blue-950/20 ring-1 ring-blue-500/40"
+              : "bg-amber-950/50 border-amber-500 text-white shadow-md shadow-amber-950/20 ring-1 ring-amber-500/40"
             : "bg-obsidian-surface hover:bg-obsidian-surface/80 border-obsidian-border hover:border-obsidian-border-active text-slate-300"
         }`}
       >

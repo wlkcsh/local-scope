@@ -107,7 +107,7 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
                 onClick={() => handlePlayerClick(pidx)}
                 className={`w-full h-[42px] min-h-[42px] max-h-[42px] flex items-center justify-between px-2.5 py-1 rounded-lg border text-left transition-colors ${
                   !isAlive
-                    ? "bg-obsidian-deep/40 border-obsidian-border/30 opacity-40 hover:opacity-60"
+                    ? "bg-obsidian-deep/60 border-obsidian-border/50 opacity-65 hover:opacity-85"
                     : isSelected
                     ? isCT
                       ? "bg-blue-950/60 border-blue-400 text-white shadow-md shadow-blue-500/20"
