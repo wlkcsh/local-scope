@@ -83,8 +83,22 @@ export default function RootLayout({
         <header className="sticky top-0 z-50 border-b border-obsidian-border bg-obsidian-surface/85 backdrop-blur-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-obsidian-border text-rust group-hover:border-rust group-hover:text-white transition-all">
-                <Crosshair className="w-4 h-4" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shadow-sm ring-1 ring-rust/30 group-hover:ring-rust transition-all">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 64 64"
+                  className="w-8 h-8"
+                  aria-hidden="true"
+                >
+                  <rect width="64" height="64" rx="14" fill="#0E1217" />
+                  <path d="M32 32 L32 15 A17 17 0 0 1 49 32 Z" fill="#D97736" fillOpacity="0.24" />
+                  <circle cx="32" cy="32" r="17" fill="none" stroke="#F7F2E7" strokeWidth="3.2" />
+                  <line x1="32" y1="9" x2="32" y2="20" stroke="#D97736" strokeWidth="3.8" strokeLinecap="round" />
+                  <line x1="32" y1="44" x2="32" y2="55" stroke="#D97736" strokeWidth="3.8" strokeLinecap="round" />
+                  <line x1="9" y1="32" x2="20" y2="32" stroke="#D97736" strokeWidth="3.8" strokeLinecap="round" />
+                  <line x1="44" y1="32" x2="55" y2="32" stroke="#D97736" strokeWidth="3.8" strokeLinecap="round" />
+                  <circle cx="32" cy="32" r="3.4" fill="#D97736" />
+                </svg>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-1.5">
