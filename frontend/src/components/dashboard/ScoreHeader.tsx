@@ -1,7 +1,8 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, Calendar, Clock, Activity, Shield } from "lucide-react";
+import { ArrowLeft, Play, Calendar, Clock, Activity, Shield, Globe } from "lucide-react";
 import { MatchRow } from "@/lib/types";
+import { ShareMatchToggle } from "@/components/dashboard/ShareMatchToggle";
 
 interface ScoreHeaderProps {
   match: MatchRow;
@@ -114,8 +115,19 @@ export function ScoreHeader({ match }: ScoreHeaderProps) {
           </div>
         </div>
 
-        {/* Right: Watch 2D Replay Action */}
-        <div className="flex items-center gap-3">
+        {/* Right: Sharing & Watch 2D Replay Action */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {match.is_owner ? (
+            <ShareMatchToggle
+              matchId={match.id}
+              initialIsPublic={Boolean(match.is_public)}
+            />
+          ) : match.is_public ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono font-bold uppercase tracking-wider">
+              <Globe className="w-3.5 h-3.5" />
+              <span>Shared Link</span>
+            </div>
+          ) : null}
           <Link
             href={`/matches/${match.id}/replay`}
             className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-rust hover:bg-rust-hover text-white font-mono font-bold text-xs tracking-wider uppercase shadow-lg shadow-rust/20 transition-all hover:scale-105 active:scale-95"

@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Calendar, Clock, Activity, ArrowRight, Play } from "lucide-react";
+import { Calendar, Clock, Activity, ArrowRight, Play, Lock, Globe } from "lucide-react";
 import { MatchRow } from "@/lib/types";
 
 interface MatchCardProps {
@@ -47,19 +47,39 @@ export function MatchCard({ match }: MatchCardProps) {
             </span>
           </div>
 
-          {match.result && (
-            <span
-              className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest border ${
-                isVictory
-                  ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
-                  : isDefeat
-                  ? "bg-rose-500/15 border-rose-500/40 text-rose-400"
-                  : "bg-slate-500/15 border-slate-500/40 text-slate-300"
-              }`}
-            >
-              {isVictory ? "VICTORY" : isDefeat ? "DEFEAT" : "DRAW"}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {match.is_public ? (
+              <span
+                className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 inline-flex items-center gap-1"
+                title="Public match link shared"
+              >
+                <Globe className="w-2.5 h-2.5" />
+                <span>LINK</span>
+              </span>
+            ) : (
+              <span
+                className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest bg-obsidian-subtle border border-obsidian-border text-slate-400 inline-flex items-center gap-1"
+                title="Private to uploader and match participants"
+              >
+                <Lock className="w-2.5 h-2.5" />
+                <span>SQUAD</span>
+              </span>
+            )}
+
+            {match.result && (
+              <span
+                className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest border ${
+                  isVictory
+                    ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                    : isDefeat
+                    ? "bg-rose-500/15 border-rose-500/40 text-rose-400"
+                    : "bg-slate-500/15 border-slate-500/40 text-slate-300"
+                }`}
+              >
+                {isVictory ? "VICTORY" : isDefeat ? "DEFEAT" : "DRAW"}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Score and Teams in Didone Typography */}

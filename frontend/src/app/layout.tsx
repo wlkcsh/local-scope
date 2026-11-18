@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Bodoni_Moda, JetBrains_Mono, Inter } from "next/font/google";
 import { Crosshair, Shield, Activity, Radio } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { UserMenu } from "@/components/layout/UserMenu";
 import "@/styles/globals.css";
 
 const bodoni = Bodoni_Moda({
@@ -118,6 +119,7 @@ export default function RootLayout({
             {/* Perimeter Telemetry Badges & Theme Switcher */}
             <div className="flex items-center gap-3 text-xs">
               <ThemeToggle />
+              <UserMenu />
               <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-obsidian-card border border-obsidian-border font-mono text-[11px] text-slate-400">
                 <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
                 <span>PARSER V1 // 8 HZ TRACKS</span>

@@ -91,6 +91,7 @@ async def execute_ingest_job(
     upload_dem_path: Optional[Path] = None,
     original_filename: Optional[str] = None,
     upload_match_id: Optional[str] = None,
+    owner_user_id: Optional[str] = None,
 ) -> None:
     """
     Core background task per Phase 2 specification.
@@ -234,6 +235,8 @@ async def execute_ingest_job(
                 # Single-transaction persistence
                 match_obj = Match(
                     id=match_id,
+                    owner_user_id=owner_user_id,
+                    is_public=False,
                     source=match_row_data["source"],
                     faceit_url=match_row_data.get("faceit_url"),
                     demo_url=match_row_data.get("demo_url"),

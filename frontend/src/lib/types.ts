@@ -63,6 +63,14 @@ export interface Nade {
 // flags: 1 headshot, 2 wallbang, 4 through-smoke, 8 noscope, 16 attacker-blind, 32 flash-assist
 export type Kill = [number, number, number, number, number, number];
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  display_name: string;
+  steamid?: string | null;
+  is_admin: boolean;
+}
+
 // Database Row Types per SPEC §2.1
 export interface MatchRow {
   id: string; // "1-<uuid>" or "up-<sha1[:16]>"
@@ -85,6 +93,8 @@ export interface MatchRow {
   replay_path: string;
   replay_bytes: number;
   parser_version: string;
+  is_public?: boolean;
+  is_owner?: boolean;
   created_at: string;
 }
 

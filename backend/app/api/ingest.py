@@ -8,7 +8,7 @@ import zlib
 import hashlib
 import asyncio
 from pathlib import Path
-from typing import Set
+from typing import Set, Optional
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -16,12 +16,12 @@ import zstandard as zstd
 
 from app.config import settings
 from app.db import get_db
-from app.models import IngestJob
+from app.models import IngestJob, User
 from app.api.deps import verify_token
 from app.ingest.pipeline import execute_ingest_job
 from app.ingest.download import ZSTD_MAGIC, GZIP_MAGIC, RAW_DEMO_MAGIC
 
-router = APIRouter(prefix="/api/ingest", tags=["ingest"], dependencies=[Depends(verify_token)])
+router = APIRouter(prefix="/api/ingest", tags=["ingest"])
 
 # Strong references set to prevent in-flight asyncio tasks from being garbage collected
 _active_background_tasks: Set[asyncio.Task] = set()
@@ -111,16 +111,22 @@ def process_upload_sync(file_obj, target_path: Path, max_bytes: int) -> str:
 @router.post("", status_code=status.HTTP_202_ACCEPTED, response_model=IngestResponse)
 async def ingest_source(
     payload: IngestRequest,
+    user: Optional[User] = Depends(verify_token),
     db: Session = Depends(get_db),
 ) -> IngestResponse:
     """Queue ingestion for a FACEIT room URL, match id, or demo URL."""
     job_id = str(uuid.uuid4())
-    job = IngestJob(id=job_id, status="queued")
+    owner_user_id = user.id if user else None
+    job = IngestJob(id=job_id, status="queued", owner_user_id=owner_user_id)
     db.add(job)
     db.commit()
 
     task = asyncio.create_task(
-        execute_ingest_job(job_id=job_id, source_str=payload.source)
+        execute_ingest_job(
+            job_id=job_id,
+            source_str=payload.source,
+            owner_user_id=owner_user_id,
+        )
     )
     _active_background_tasks.add(task)
     task.add_done_callback(_active_background_tasks.discard)
@@ -131,10 +137,12 @@ async def ingest_source(
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED, response_model=IngestResponse)
 async def upload_demo(
     file: UploadFile = File(...),
+    user: Optional[User] = Depends(verify_token),
     db: Session = Depends(get_db),
 ) -> IngestResponse:
     """Multipart upload for .dem, .dem.gz, or .dem.zst files with on-the-fly decompression."""
     job_id = str(uuid.uuid4())
+    owner_user_id = user.id if user else None
     tmp_dir = settings.resolved_tmp_dir
     tmp_dir.mkdir(parents=True, exist_ok=True)
     target_path = tmp_dir / f"{job_id}.dem"
@@ -160,7 +168,7 @@ async def upload_demo(
         )
 
     # Record job in database
-    job = IngestJob(id=job_id, status="queued")
+    job = IngestJob(id=job_id, status="queued", owner_user_id=owner_user_id)
     db.add(job)
     db.commit()
 
@@ -170,6 +178,7 @@ async def upload_demo(
             upload_dem_path=target_path,
             original_filename=file.filename,
             upload_match_id=upload_match_id,
+            owner_user_id=owner_user_id,
         )
     )
     _active_background_tasks.add(task)

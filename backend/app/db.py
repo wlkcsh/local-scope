@@ -64,8 +64,27 @@ configure_db()
 
 
 def init_db() -> None:
-    """Create all database tables on application startup."""
+    """Create all database tables on application startup and apply migrations safely."""
     Base.metadata.create_all(bind=engine)
+
+    # Safe SQLite idempotent schema migration for multi-user columns
+    db_url = settings.resolved_database_url
+    if db_url.startswith("sqlite"):
+        with engine.begin() as conn:
+            try:
+                # Check matches table
+                matches_cols = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(matches);").fetchall()}
+                if "owner_user_id" not in matches_cols:
+                    conn.exec_driver_sql("ALTER TABLE matches ADD COLUMN owner_user_id TEXT REFERENCES users(id) ON DELETE SET NULL;")
+                if "is_public" not in matches_cols:
+                    conn.exec_driver_sql("ALTER TABLE matches ADD COLUMN is_public BOOLEAN NOT NULL DEFAULT 0;")
+
+                # Check ingest_jobs table
+                job_cols = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(ingest_jobs);").fetchall()}
+                if "owner_user_id" not in job_cols:
+                    conn.exec_driver_sql("ALTER TABLE ingest_jobs ADD COLUMN owner_user_id TEXT REFERENCES users(id) ON DELETE SET NULL;")
+            except Exception:
+                pass
 
 
 def get_db() -> Generator[Session, None, None]:

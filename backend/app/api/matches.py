@@ -1,26 +1,27 @@
 """
-Matches and Replay API Endpoints per SPEC §4 and Phase 2.
-Provides match listings, detailed scoreboard, highlights, mistakes, deletion, and raw replay streaming.
+Matches and Replay API Endpoints per SPEC §4, Phase 2, and Multi-User Privacy.
+Provides match listings, detailed scoreboard, highlights, mistakes, visibility toggling,
+deletion, and raw replay streaming with owner + participant SteamID64 access control.
 """
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import gzip
 import json
 import logging
-from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Path as PathParam
+import secrets
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status, Path as PathParam
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import desc, select
+from sqlalchemy import desc, or_, select
 
 from app.config import settings
 from app.db import get_db
-from app.models import Match, PlayerMatchStat, Highlight, Mistake
-from app.api.deps import verify_token
+from app.models import Match, PlayerMatchStat, Highlight, Mistake, User
+from app.api.deps import get_optional_user, require_user, verify_token
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/matches", tags=["matches"], dependencies=[Depends(verify_token)])
+router = APIRouter(prefix="/api/matches", tags=["matches"])
 
 MATCH_ID_REGEX = r"^[a-zA-Z0-9_\-]+$"
 
@@ -33,22 +34,117 @@ class MatchDetailResponse(BaseModel):
     rounds: List[Dict[str, Any]] = []
 
 
+class MatchVisibilityRequest(BaseModel):
+    is_public: bool
+
+
+class MatchVisibilityResponse(BaseModel):
+    id: str
+    is_public: bool
+
+
+def _has_valid_service_token(authorization: Optional[str]) -> bool:
+    """Checks whether the request carries the static server-side API_TOKEN."""
+    if not authorization or not settings.api_token or not settings.api_token.strip():
+        return False
+    parts = authorization.split()
+    return (
+        len(parts) == 2
+        and parts[0].lower() == "bearer"
+        and secrets.compare_digest(parts[1].strip(), settings.api_token.strip())
+    )
+
+
+def _is_match_owner(m: Match, user: Optional[User]) -> bool:
+    if not user:
+        return False
+    if m.owner_user_id == user.id:
+        return True
+    if user.is_admin and m.owner_user_id is None:
+        return True
+    return False
+
+
+def _can_view_match(
+    m: Match,
+    user: Optional[User],
+    has_service_token: bool,
+    db: Session,
+) -> bool:
+    if m.is_public or has_service_token:
+        return True
+    if not user:
+        return False
+    if _is_match_owner(m, user):
+        return True
+    if user.steamid:
+        participant_exists = db.scalar(
+            select(PlayerMatchStat.steamid)
+            .where(
+                PlayerMatchStat.match_id == m.id,
+                PlayerMatchStat.steamid == user.steamid,
+            )
+            .limit(1)
+        )
+        if participant_exists:
+            return True
+    return False
+
+
+def _resolve_user_perspective(
+    m: Match, user: Optional[User], stats_list: List[PlayerMatchStat]
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """
+    Computes (my_steamid, my_team, result) from the viewing user's SteamID64 if they played
+    in this match; otherwise falls back to stored match defaults.
+    """
+    if user and user.steamid:
+        for s in stats_list:
+            if s.steamid == user.steamid:
+                team = s.team
+                if team == "A":
+                    res = "W" if m.score_a > m.score_b else ("L" if m.score_a < m.score_b else "D")
+                else:
+                    res = "W" if m.score_b > m.score_a else ("L" if m.score_b < m.score_a else "D")
+                return (user.steamid, team, res)
+    return (m.my_steamid, m.my_team, m.result)
+
+
 @router.get("", response_model=List[Dict[str, Any]])
 def list_matches(
+    user: Optional[User] = Depends(verify_token),
     db: Session = Depends(get_db),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ) -> List[Dict[str, Any]]:
-    """List match summaries ordered by played_at DESC, created_at DESC per Phase 2."""
+    """
+    List match summaries visible to the authenticated user:
+    owned matches + matches where the user's linked SteamID64 participated.
+    """
     stmt = (
         select(Match)
+        .options(selectinload(Match.player_stats))
         .order_by(desc(Match.played_at), desc(Match.created_at))
-        .offset(offset)
-        .limit(limit)
     )
+
+    if user is not None:
+        conditions = [Match.owner_user_id == user.id]
+        if user.steamid:
+            conditions.append(
+                Match.id.in_(
+                    select(PlayerMatchStat.match_id).where(PlayerMatchStat.steamid == user.steamid)
+                )
+            )
+        if user.is_admin:
+            conditions.append(Match.owner_user_id.is_(None))
+        stmt = stmt.where(or_(*conditions))
+
+    stmt = stmt.offset(offset).limit(limit)
     matches = db.scalars(stmt).all()
+
     results = []
     for m in matches:
+        my_sid, my_team, result = _resolve_user_perspective(m, user, m.player_stats)
         results.append({
             "id": m.id,
             "source": m.source,
@@ -64,17 +160,24 @@ def list_matches(
             "score_a": m.score_a,
             "score_b": m.score_b,
             "team_a_first_side": m.team_a_first_side,
-            "my_steamid": m.my_steamid,
-            "my_team": m.my_team,
-            "result": m.result,
+            "my_steamid": my_sid,
+            "my_team": my_team,
+            "result": result,
             "replay_bytes": m.replay_bytes,
+            "is_public": bool(m.is_public),
+            "is_owner": _is_match_owner(m, user),
             "created_at": m.created_at.isoformat() if m.created_at else None,
         })
     return results
 
 
 @router.get("/{match_id}", response_model=MatchDetailResponse)
-def get_match_detail(match_id: str, db: Session = Depends(get_db)) -> MatchDetailResponse:
+def get_match_detail(
+    match_id: str,
+    user: Optional[User] = Depends(get_optional_user),
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> MatchDetailResponse:
     """Retrieve full match metadata, player statistics, highlights, and mistakes."""
     stmt = (
         select(Match)
@@ -86,7 +189,7 @@ def get_match_detail(match_id: str, db: Session = Depends(get_db)) -> MatchDetai
         .where(Match.id == match_id)
     )
     m = db.scalars(stmt).first()
-    if not m:
+    if not m or not _can_view_match(m, user, _has_valid_service_token(authorization), db):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found"
         )
@@ -162,6 +265,8 @@ def get_match_detail(match_id: str, db: Session = Depends(get_db)) -> MatchDetai
         for mi in m.mistakes
     ]
 
+    my_sid, my_team, result = _resolve_user_perspective(m, user, m.player_stats)
+
     match_dict = {
         "id": m.id,
         "source": m.source,
@@ -177,11 +282,13 @@ def get_match_detail(match_id: str, db: Session = Depends(get_db)) -> MatchDetai
         "score_a": m.score_a,
         "score_b": m.score_b,
         "team_a_first_side": m.team_a_first_side,
-        "my_steamid": m.my_steamid,
-        "my_team": m.my_team,
-        "result": m.result,
+        "my_steamid": my_sid,
+        "my_team": my_team,
+        "result": result,
         "replay_path": m.replay_path,
         "replay_bytes": m.replay_bytes,
+        "is_public": bool(m.is_public),
+        "is_owner": _is_match_owner(m, user),
         "created_at": m.created_at.isoformat() if m.created_at else None,
     }
 
@@ -221,9 +328,36 @@ def get_match_detail(match_id: str, db: Session = Depends(get_db)) -> MatchDetai
     )
 
 
+@router.patch("/{match_id}/visibility", response_model=MatchVisibilityResponse)
+def update_match_visibility(
+    req: MatchVisibilityRequest,
+    match_id: str = PathParam(..., pattern=MATCH_ID_REGEX),
+    user: User = Depends(require_user),
+    db: Session = Depends(get_db),
+) -> MatchVisibilityResponse:
+    """Allows the match owner to toggle whether a match is shareable via public link."""
+    m = db.get(Match, match_id)
+    if not m:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found"
+        )
+    if not _is_match_owner(m, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the match owner can change sharing settings",
+        )
+
+    m.is_public = req.is_public
+    db.add(m)
+    db.commit()
+    db.refresh(m)
+    return MatchVisibilityResponse(id=m.id, is_public=bool(m.is_public))
+
+
 @router.delete("/{match_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_match(
     match_id: str = PathParam(..., pattern=MATCH_ID_REGEX),
+    user: Optional[User] = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """Deletes match from database (cascading to stats, highlights, mistakes) and unlinks replay file."""
@@ -231,6 +365,12 @@ def delete_match(
     if not m:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found"
+        )
+
+    if user is not None and not _is_match_owner(m, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the match owner can delete this match",
         )
 
     target_replay = (settings.resolved_replays_dir / f"{match_id}.json.gz").resolve()
@@ -249,9 +389,17 @@ def delete_match(
 def get_match_highlights(
     match_id: str,
     steamid: Optional[str] = Query(None),
+    user: Optional[User] = Depends(get_optional_user),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
     """Retrieve highlights for a match, optionally filtered by player steamid."""
+    m = db.get(Match, match_id)
+    if not m or not _can_view_match(m, user, _has_valid_service_token(authorization), db):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found"
+        )
+
     stmt = select(Highlight).where(Highlight.match_id == match_id)
     if steamid:
         stmt = stmt.where(Highlight.steamid == steamid)
@@ -279,9 +427,17 @@ def get_match_highlights(
 def get_match_mistakes(
     match_id: str,
     steamid: Optional[str] = Query(None),
+    user: Optional[User] = Depends(get_optional_user),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
     """Retrieve mistake cards for a match, optionally filtered by player steamid."""
+    m = db.get(Match, match_id)
+    if not m or not _can_view_match(m, user, _has_valid_service_token(authorization), db):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found"
+        )
+
     stmt = select(Mistake).where(Mistake.match_id == match_id)
     if steamid:
         stmt = stmt.where(Mistake.steamid == steamid)
@@ -309,6 +465,8 @@ def get_match_mistakes(
 @router.get("/{match_id}/replay")
 def get_match_replay(
     match_id: str = PathParam(..., pattern=MATCH_ID_REGEX),
+    user: Optional[User] = Depends(get_optional_user),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
     """
@@ -317,7 +475,7 @@ def get_match_replay(
     Content-Encoding: gzip
     """
     m = db.get(Match, match_id)
-    if not m:
+    if not m or not _can_view_match(m, user, _has_valid_service_token(authorization), db):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found"
         )

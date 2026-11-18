@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     cors_origins: Annotated[List[str], NoDecode] = ["http://localhost:3000"]
     cors_origin_regex: Optional[str] = None
     max_dem_bytes: int = 1_500_000_000
+    auth_secret: str = "dev-insecure-secret-change-in-production-32chars"
+    invite_code: Optional[str] = None
+    session_ttl_days: int = 30
+    cookie_secure: bool = False  # set True in prod, auto-detected if None
 
     @field_validator("cors_origins", mode="before")
     @classmethod

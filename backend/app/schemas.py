@@ -108,6 +108,9 @@ class MatchRow(BaseModel):
     replay_path: str
     replay_bytes: int
     parser_version: str = "v1"
+    owner_user_id: Optional[str] = None
+    is_public: bool = False
+    is_owner: bool = False
 
 
 class PlayerMatchStatsRow(BaseModel):

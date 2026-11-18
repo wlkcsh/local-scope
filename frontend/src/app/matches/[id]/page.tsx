@@ -1,5 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { fetchMatchDetail } from "@/lib/api";
 import { ScoreHeader } from "@/components/dashboard/ScoreHeader";
 import { PlayerSelect } from "@/components/dashboard/PlayerSelect";
@@ -26,9 +27,12 @@ export default async function MatchDashboardPage({
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
 
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
   let detail;
   try {
-    detail = await fetchMatchDetail(id);
+    detail = await fetchMatchDetail(id, cookieHeader);
   } catch (err) {
     console.error(`Error loading match ${id}:`, err);
     notFound();

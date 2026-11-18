@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.db import init_db
 from app.ingest.pipeline import startup_recovery, PROCESS_POOL
+from app.api.auth import router as auth_router
 from app.api.ingest import router as ingest_router
 from app.api.jobs import router as jobs_router
 from app.api.matches import router as matches_router
@@ -61,6 +62,7 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     # Include API Routers
+    app.include_router(auth_router)
     app.include_router(ingest_router)
     app.include_router(jobs_router)
     app.include_router(matches_router)

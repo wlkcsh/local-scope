@@ -22,13 +22,14 @@ from app.models import Match, PlayerMatchStat, IngestJob
 from app.ingest.pipeline import execute_ingest_job
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def setup_test_environment(tmp_path_factory):
     """Isolate test database and storage directories."""
     base_tmp = tmp_path_factory.mktemp("scope_test")
     settings.database_url = f"sqlite:///{base_tmp}/test.db"
     settings.data_dir = base_tmp / "data"
     settings.tmp_dir = base_tmp / "tmp"
+    settings.invite_code = None
     configure_db(settings.database_url)
     init_db()
 
@@ -37,6 +38,13 @@ def setup_test_environment(tmp_path_factory):
 async def client():
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+        # Authenticate as a test squad member for protected ingest/match endpoints
+        uname = f"tester_{uuid.uuid4().hex[:8]}"
+        reg = await c.post(
+            "/api/auth/register",
+            json={"username": uname, "password": "TestPassword123!"},
+        )
+        assert reg.status_code == 200
         yield c
 
 

@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     Integer,
     Float,
+    Boolean,
     DateTime,
     ForeignKey,
     CheckConstraint,
@@ -28,6 +29,24 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = (
+        Index("ix_users_username", "username", unique=True),
+        Index("ix_users_steamid", "steamid"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(String, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    steamid: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=func.now())
+
+    matches: Mapped[List["Match"]] = relationship("Match", back_populates="owner")
+
+
 class Match(Base):
     __tablename__ = "matches"
     __table_args__ = (
@@ -36,9 +55,14 @@ class Match(Base):
         CheckConstraint("my_team IN ('A', 'B')", name="chk_matches_my_team"),
         CheckConstraint("result IN ('W', 'L', 'D')", name="chk_matches_result"),
         Index("ix_matches_played_created", "played_at", "created_at"),
+        Index("ix_matches_owner_user_id", "owner_user_id"),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
+    owner_user_id: Mapped[Optional[str]] = mapped_column(
+        String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     source: Mapped[str] = mapped_column(String, nullable=False)
     faceit_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     demo_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
@@ -69,6 +93,7 @@ class Match(Base):
     mistakes: Mapped[List["Mistake"]] = relationship(
         "Mistake", back_populates="match", cascade="all, delete-orphan", passive_deletes=True
     )
+    owner: Mapped[Optional["User"]] = relationship("User", back_populates="matches")
 
 
 class PlayerMatchStat(Base):
@@ -181,6 +206,9 @@ class IngestJob(Base):
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
+    owner_user_id: Mapped[Optional[str]] = mapped_column(
+        String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     match_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     status: Mapped[str] = mapped_column(String, nullable=False, default="queued")
     error: Mapped[Optional[str]] = mapped_column(String, nullable=True)
