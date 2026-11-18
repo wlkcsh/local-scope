@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #080a0d;
+  --foreground: #e6edf3;
+  --bg-obsidian-deep: #080a0d;
+  --bg-obsidian-surface: #0e1217;
+  --bg-obsidian-card: #14181f;
+  --bg-obsidian-subtle: #0a0d12;
+  --border-obsidian: rgba(255, 255, 255, 0.08);
+  --border-obsidian-hover: rgba(255, 255, 255, 0.18);
+  --border-obsidian-active: rgba(255, 255, 255, 0.32);
+  --color-rust: #d97736;
+  --color-rust-subtle: rgba(217, 119, 54, 0.15);
+  --color-rust-hover: #e58e26;
+  --color-rust-border: rgba(217, 119, 54, 0.35);
+}
+
+/* Editorial Archive (Warm Cream Paper, Deep Plum Ink, Rust) */
+html.editorial {
+  --background: #ECE3D1;
+  --foreground: #43282A;
+  --bg-obsidian-deep: #ECE3D1;
+  --bg-obsidian-surface: #EDE4D2;
+  --bg-obsidian-card: #E6DCC8;
+  --bg-obsidian-subtle: #DFD5C0;
+  --border-obsidian: rgba(67, 40, 42, 0.16);
+  --border-obsidian-hover: rgba(67, 40, 42, 0.30);
+  --border-obsidian-active: rgba(67, 40, 42, 0.50);
+  --color-rust: #A86438;
+  --color-rust-subtle: rgba(168, 100, 56, 0.12);
+  --color-rust-hover: #8F522A;
+  --color-rust-border: rgba(168, 100, 56, 0.35);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html.editorial body {
+  background-color: #ECE3D1;
+  color: #43282A;
+}
+
+html.editorial .tactical-grain {
+  mix-blend-mode: multiply;
+  opacity: 0.38;
+}
+
+/* Editorial Archive Cards & Surfaces */
+html.editorial .bg-obsidian-card,
+html.editorial [class*="bg-obsidian-card"] {
+  background-color: #E6DCC8 !important;
+  border-color: rgba(67, 40, 42, 0.16) !important;
+}
+
+html.editorial .bg-obsidian-surface,
+html.editorial [class*="bg-obsidian-surface"] {
+  background-color: #EDE4D2 !important;
+  border-color: rgba(67, 40, 42, 0.16) !important;
+}
+
+html.editorial .bg-obsidian-subtle,
+html.editorial [class*="bg-obsidian-subtle"] {
+  background-color: #DFD5C0 !important;
+  border-color: rgba(67, 40, 42, 0.16) !important;
+}
+
+html.editorial .bg-surface,
+html.editorial [class*="bg-surface"] {
+  background-color: #EDE4D2 !important;
+  border-color: rgba(67, 40, 42, 0.16) !important;
+}
+
+html.editorial .border-obsidian-border,
+html.editorial [class*="border-obsidian-border"] {
+  border-color: rgba(67, 40, 42, 0.16) !important;
+}
+
+/* Typography ink in Editorial mode */
+html.editorial .text-white {
+  color: #43282A !important;
+}
+
+html.editorial .text-slate-100,
+html.editorial .text-slate-200,
+html.editorial .text-slate-300 {
+  color: #43282A !important;
+}
+
+html.editorial .text-slate-400 {
+  color: rgba(67, 40, 42, 0.72) !important;
+}
+
+html.editorial .text-slate-500 {
+  color: rgba(67, 40, 42, 0.55) !important;
+}
+
+html.editorial .text-slate-600 {
+  color: rgba(67, 40, 42, 0.40) !important;
+}
+
+/* Interactive elements in Editorial mode */
+html.editorial .hover\:text-white:hover {
+  color: #43282A !important;
+}
+
+html.editorial .label-rust {
+  color: #A86438 !important;
+}
+
+html.editorial .bg-rust-subtle {
+  background-color: rgba(168, 100, 56, 0.12) !important;
+  color: #A86438 !important;
+}
+
+html.editorial .bg-sky-950\/20 {
+  background-color: rgba(74, 144, 226, 0.16) !important;
+  border-color: rgba(74, 144, 226, 0.40) !important;
+}
+
+html.editorial .bg-amber-950\/20 {
+  background-color: rgba(217, 119, 54, 0.16) !important;
+  border-color: rgba(217, 119, 54, 0.40) !important;
+}
+
+html.editorial .text-sky-200 {
+  color: #1e40af !important;
+}
+
+html.editorial .text-amber-200 {
+  color: #92400e !important;
+}
+
+/* Launch 2D replay button on cream paper */
+html.editorial .bg-rust {
+  background-color: #A86438 !important;
+  color: #ECE3D1 !important;
+}
+html.editorial .bg-rust:hover {
+  background-color: #8C512C !important;
+}
+
+html.editorial .bg-obsidian-surface\/85 {
+  background-color: rgba(237, 228, 210, 0.90) !important;
+}
+
+html.editorial ::-webkit-scrollbar-track {
+  background: #ECE3D1;
+}
+
+html.editorial ::-webkit-scrollbar-thumb {
+  background: rgba(67, 40, 42, 0.20);
+}
+
+html.editorial ::-webkit-scrollbar-thumb:hover {
+  background: rgba(67, 40, 42, 0.35);
+}
+
+/* Didone display font with pinned optical size for razor-sharp hairlines */
+.font-display {
+  font-family: var(--font-bodoni), Georgia, serif;
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 11, "wght" 500;
+}
+
+/* Micro-grain tactical overlay */
+.tactical-grain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+}
+
+/* Editorial badge & label utilities */
+.label-rust {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-rust);
+}
+
+.telemetry-tag {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Custom compact obsidian scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080a0d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}

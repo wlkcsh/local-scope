@@ -1,0 +1,98 @@
+{
+  "de_mirage": {
+    "name": "de_mirage",
+    "display_name": "Mirage",
+    "pos_x": -3230.0,
+    "pos_y": 1713.0,
+    "scale": 5.0,
+    "radar_size": 1024,
+    "default_radar": "de_mirage_radar_psd.png",
+    "vertical_sections": {}
+  },
+  "de_inferno": {
+    "name": "de_inferno",
+    "display_name": "Inferno",
+    "pos_x": -2087.0,
+    "pos_y": 3870.0,
+    "scale": 4.9,
+    "radar_size": 1024,
+    "default_radar": "de_inferno_radar_psd.png",
+    "vertical_sections": {}
+  },
+  "de_nuke": {
+    "name": "de_nuke",
+    "display_name": "Nuke",
+    "pos_x": -3453.0,
+    "pos_y": 2887.0,
+    "scale": 7.0,
+    "radar_size": 1024,
+    "default_radar": "de_nuke_radar_psd.png",
+    "vertical_sections": {
+      "upper": {
+        "altitude_min": -495.0,
+        "altitude_max": 10000.0,
+        "radar_layer": "upper",
+        "radar_file": "de_nuke_radar_psd.png"
+      },
+      "lower": {
+        "altitude_min": -10000.0,
+        "altitude_max": -495.0,
+        "radar_layer": "lower",
+        "radar_file": "de_nuke_lower_radar_psd.png"
+      }
+    }
+  },
+  "de_vertigo": {
+    "name": "de_vertigo",
+    "display_name": "Vertigo",
+    "pos_x": -3168.0,
+    "pos_y": 1762.0,
+    "scale": 4.0,
+    "radar_size": 1024,
+    "default_radar": "de_vertigo_radar_psd.png",
+    "vertical_sections": {
+      "upper": {
+        "altitude_min": 11700.0,
+        "altitude_max": 20000.0,
+        "radar_layer": "upper",
+        "radar_file": "de_vertigo_radar_psd.png"
+      },
+      "lower": {
+        "altitude_min": -10000.0,
+        "altitude_max": 11700.0,
+        "radar_layer": "lower",
+        "radar_file": "de_vertigo_lower_radar_psd.png"
+      }
+    }
+  },
+  "de_dust2": {
+    "name": "de_dust2",
+    "display_name": "Dust II",
+    "pos_x": -2476.0,
+    "pos_y": 3239.0,
+    "scale": 4.4,
+    "radar_size": 1024,
+    "default_radar": "de_dust2_radar_psd.png",
+    "vertical_sections": {}
+  },
+  "de_ancient": {
+    "name": "de_ancient",
+    "display_name": "Ancient",
+    "pos_x": -2953.0,
+    "pos_y": 2164.0,
+    "scale": 5.0,
+    "radar_size": 1024,
+    "default_radar": "de_ancient_radar_psd.png",
+    "vertical_sections": {}
+  },
+  "de_anubis": {
+    "name": "de_anubis",
+    "display_name": "Anubis",
+    "pos_x": -2796.0,
+    "pos_y": 3328.0,
+    "scale": 5.22,
+    "radar_size": 1024,
+    "default_radar": "de_anubis_radar_psd.png",
+    "vertical_sections": {}
+  }
+}
