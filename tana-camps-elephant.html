@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tana Camps Expeditions — Elephant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* -------------------------------------------------------------
+       1. Tokens & Reset
+       ------------------------------------------------------------- */
+    :root {
+      --color-paper: #ECE3D1;
+      --color-paper-dark: #E6DCC8;
+      --color-ink: #43282A;
+      --color-ink-body: rgba(67, 40, 42, 0.72);
+      --color-ink-hairline: rgba(67, 40, 42, 0.16);
+      --color-rust: #A86438;
+      
+      --font-display: "Bodoni Moda", Didot, "Bodoni MT", serif;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background-color: var(--color-paper);
+      color: var(--color-ink);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Fixed SVG Grain Overlay (Multiply blend 38%) */
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.38;
+      mix-blend-mode: multiply;
+    }
+
+    /* Global Typography Styles */
+    .label-rust {
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-rust);
+      display: inline-block;
+    }
+
+    .bodoni-display {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-optical-sizing: none;
+      font-variation-settings: 'opsz' 11, 'wght' 500;
+      text-transform: uppercase;
+    }
+
+    /* Kinetic Letter Split Wrapper */
+    .char-span {
+      display: inline-block;
+      white-space: pre;
+      transform-origin: 50% 100%;
+      will-change: transform, opacity, filter;
+    }
+
+    /* -------------------------------------------------------------
+       2. Section 1 · Hero
+       ------------------------------------------------------------- */
+    .hero-section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      height: 100svh;
+      overflow: hidden;
+      background-color: var(--color-paper);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-stage {
+      position: relative;
+      /* Box with photo ratio 2688:1520 */
+      width: max(100vw, calc(100svh * 1.7684));
+      aspect-ratio: 2688 / 1520;
+      container-type: inline-size;
+      will-change: transform;
+      transform-origin: center top;
+    }
+
+    /* Hero Layer 1: Background Landscape */
+    .hero-bg-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.06);
+      transition: transform 2.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.1s linear;
+      will-change: transform, filter;
+      z-index: 1;
+    }
+
+    .hero-bg-photo.loaded {
+      transform: scale(1);
+    }
+
+    /* Hero Layer 2: Title Block (sits behind the elephant's back) */
+    .hero-title-block {
+      position: absolute;
+      top: 19.2%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 2;
+      width: 100%;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-sans);
+      font-size: 0.66cqw;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 0.6cqw;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 1.2s ease 0.3s, transform 1.2s ease 0.3s;
+    }
+
+    .hero-eyebrow.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hero-main-title {
+      font-family: var(--font-display);
+      font-size: 9.6cqw;
+      line-height: 0.8;
+      letter-spacing: 0.01em;
+      color: #FAF4EB;
+      text-shadow: 0 4px 30px rgba(67, 40, 42, 0.25);
+      font-weight: 500;
+      font-optical-sizing: none;
+      font-variation-settings: 'opsz' 11, 'wght' 500;
+      display: inline-block;
+    }
+
+    .hero-main-title .char-span {
+      opacity: 0;
+      transform: translateY(0.18em);
+      filter: blur(10px);
+      transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+                  filter 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hero-main-title.revealed .char-span {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    /* Hero Layer 3: Elephant Cut-out (overlaps letters "PH") */
+    .hero-elephant-cutout {
+      position: absolute;
+      left: 26.19%;
+      top: 30.99%;
+      width: 46.5%;
+      height: auto;
+      z-index: 3;
+      pointer-events: none;
+      will-change: filter;
+    }
+
+    /* Hero Navigation Bar */
+    .hero-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 32px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      color: #FAF4EB;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 1.2s ease 0.2s, transform 1.2s ease 0.2s;
+    }
+
+    .hero-nav.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .nav-left, .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .menu-bars {
+      width: 16px;
+      height: 9px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .menu-bars span {
+      width: 100%;
+      height: 1.5px;
+      background-color: currentColor;
+    }
+
+    .nav-center {
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-family: var(--font-sans);
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(250, 244, 235, 0.75);
+    }
+
+    /* Hero Map Pill */
+    .hero-map-pill {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background-color: var(--color-paper);
+      color: var(--color-ink);
+      padding: 12px 24px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 30px rgba(67, 40, 42, 0.25);
+      z-index: 4;
+      opacity: 0;
+      cursor: pointer;
+      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1) 1.05s,
+                  transform 1s cubic-bezier(0.16, 1, 0.3, 1) 1.05s,
+                  background-color 0.2s ease;
+    }
+
+    .hero-map-pill:hover {
+      background-color: #F7EFE1;
+    }
+
+    .hero-map-pill.revealed {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Hero Bottom Gradient (Melts into Paper on scroll) */
+    .hero-paper-melt {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 34%;
+      background: linear-gradient(to top, var(--color-paper) 0%, rgba(236, 227, 209, 0.8) 40%, rgba(236, 227, 209, 0) 100%);
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0.34;
+      will-change: height, opacity;
+    }
+
+    /* -------------------------------------------------------------
+       3. Section 2 · Statement
+       ------------------------------------------------------------- */
+    .statement-section {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100svh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 120px 24px;
+      text-align: center;
+      background-color: var(--color-paper);
+      z-index: 10;
+    }
+
+    .statement-wrapper {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .statement-text {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 7.2vw, 132px);
+      line-height: 1.06;
+      font-weight: 500;
+      color: var(--color-ink);
+      text-transform: uppercase;
+      font-optical-sizing: none;
+      font-variation-settings: 'opsz' 11, 'wght' 500;
+    }
+
+    .statement-line {
+      display: block;
+      margin-bottom: 0.05em;
+    }
+
+    .statement-text .char-span {
+      opacity: 0;
+      transform: translateY(0.55em) rotate(4deg);
+      transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .statement-section.revealed .statement-text .char-span {
+      opacity: 1;
+      transform: translateY(0) rotate(0deg);
+    }
+
+    /* Inline Photo Pills */
+    .photo-pill {
+      display: inline-block;
+      vertical-align: middle;
+      width: 0.86em;
+      height: 0.86em;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 0 0.12em;
+      position: relative;
+      transform: scale(0);
+      transform-origin: center center;
+      box-shadow: 0 4px 16px rgba(67, 40, 42, 0.2);
+      transition: transform 1.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .photo-pill img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.5);
+      transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .statement-section.revealed .photo-pill {
+      transform: scale(1);
+    }
+
+    .statement-section.revealed .photo-pill img {
+      transform: scale(1);
+    }
+
+    /* Rust Line Emblem */
+    .emblem-wrapper {
+      margin-top: 24px;
+      width: 66px;
+      height: 66px;
+      opacity: 0;
+      transform: scale(0.6) rotate(-90deg);
+      transition: transform 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.4s,
+                  opacity 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+    }
+
+    .statement-section.revealed .emblem-wrapper {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    /* -------------------------------------------------------------
+       4. Section 3 · Quick Facts
+       ------------------------------------------------------------- */
+    .facts-section {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100svh;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 120px 48px;
+      background-color: var(--color-paper);
+      z-index: 10;
+    }
+
+    .facts-container {
+      max-width: 1180px;
+      width: 100%;
+      border-top: 1px solid var(--color-ink-hairline);
+      padding-top: 64px;
+      display: grid;
+      grid-template-columns: 1.12fr 1.12fr 0.96fr;
+      gap: 56px;
+      align-items: start;
+    }
+
+    /* Column 1: Title & Play Badge */
+    .facts-col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .facts-title {
+      font-family: var(--font-display);
+      font-size: clamp(34px, 4.25vw, 66px);
+      line-height: 0.96;
+      font-weight: 500;
+      color: var(--color-ink);
+      text-transform: uppercase;
+      font-optical-sizing: none;
+      font-variation-settings: 'opsz' 11, 'wght' 500;
+    }
+
+    .facts-title .char-span {
+      opacity: 0;
+      transform: translateY(0.45em) rotate(3deg);
+      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .facts-section.revealed .facts-title .char-span {
+      opacity: 1;
+      transform: translateY(0) rotate(0deg);
+    }
+
+    .play-badge-group {
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .play-badge {
+      width: 84px;
+      height: 84px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .badge-ticks {
+      width: 100%;
+      height: 100%;
+      animation: rotateTicks 16s linear infinite;
+    }
+
+    @keyframes rotateTicks {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .badge-play-btn {
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--color-rust);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+    }
+
+    .play-badge:hover .badge-play-btn {
+      transform: scale(1.12);
+      background-color: #8C4E28;
+    }
+
+    .play-triangle {
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 5px 0 5px 9px;
+      border-color: transparent transparent transparent var(--color-paper);
+      margin-left: 2px;
+    }
+
+    .play-caption {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-ink);
+    }
+
+    /* Column 2: Keystone Paragraph & Facts Table */
+    .facts-col-mid {
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s,
+                  transform 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+    }
+
+    .facts-section.revealed .facts-col-mid {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .keystone-copy {
+      font-size: 13.4px;
+      line-height: 1.75;
+      color: var(--color-ink-body);
+      font-weight: 400;
+    }
+
+    .facts-table {
+      width: 100%;
+      border-top: 1px solid var(--color-ink-hairline);
+    }
+
+    .table-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--color-ink-hairline);
+      font-size: 12.5px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .facts-section.revealed .table-row {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .row-label {
+      color: var(--color-ink);
+      font-weight: 500;
+    }
+
+    .row-value {
+      color: var(--color-rust);
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* Column 3: Tall 2:3 Portrait */
+    .facts-col-right {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      overflow: hidden;
+      clip-path: inset(100% 0 0 0);
+      transition: clip-path 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+    }
+
+    .facts-section.revealed .facts-col-right {
+      clip-path: inset(0 0 0 0);
+    }
+
+    .facts-portrait-img {
+      width: 100%;
+      height: 114%;
+      object-fit: cover;
+      transform: scale(1.25) translateY(0);
+      transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+      will-change: transform;
+    }
+
+    .facts-section.revealed .facts-portrait-img {
+      transform: scale(1) translateY(0);
+    }
+
+    /* -------------------------------------------------------------
+       5. Responsive Rules (Phone ≤ 760px)
+       ------------------------------------------------------------- */
+    @media (max-width: 760px) {
+      .hero-nav {
+        padding: 24px;
+      }
+      .nav-left span, .nav-right span {
+        display: none;
+      }
+
+      .hero-title-block {
+        top: 17%;
+      }
+
+      .hero-eyebrow {
+        font-size: 2.4vw;
+      }
+
+      .hero-main-title {
+        font-size: 15.6vw;
+      }
+
+      .statement-section {
+        padding: 80px 20px;
+      }
+
+      .statement-text {
+        font-size: 8.6vw;
+      }
+
+      .facts-section {
+        padding: 80px 24px;
+      }
+
+      .facts-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding-top: 40px;
+      }
+
+      .facts-title {
+        font-size: 12vw;
+      }
+
+      .facts-col-right {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG Grain Texture Filter (Multiply Blend) -->
+  <svg class="grain-overlay" xmlns="http://www.w3.org/2000/svg">
+    <filter id="grain-filter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain-filter)" />
+  </svg>
+
+  <!-- ============================================================
+       1 · HERO SECTION
+       ============================================================ -->
+  <header class="hero-section" id="hero">
+    <div class="hero-stage" id="heroStage">
+      <!-- Layer 1: Background Landscape Photo -->
+      <img 
+        src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/934f4b51-d05b-4498-9c4a-8262f044da66.jpg" 
+        alt="African bush elephant in golden savanna" 
+        class="hero-bg-photo" 
+        id="heroBgPhoto"
+      />
+
+      <!-- Layer 2: Title Block -->
+      <div class="hero-title-block">
+        <div class="hero-eyebrow" id="heroEyebrow">LOXODONTA AFRICANA</div>
+        <h1 class="hero-main-title" id="heroTitle" aria-label="ELEPHANT">
+          <!-- Populated with char-spans in JS -->
+          ELEPHANT
+        </h1>
+      </div>
+
+      <!-- Layer 3: Elephant Cut-out (overlaps lower letters 'PH') -->
+      <img 
+        src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/5d850aba-1a5b-44eb-bd6c-cd9f87845be7.webp" 
+        alt="Elephant silhouette cutout" 
+        class="hero-elephant-cutout" 
+        id="heroCutout"
+      />
+
+      <!-- Paper Melting Gradient Overlay -->
+      <div class="hero-paper-melt" id="heroMelt"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="hero-nav" id="heroNav">
+      <div class="nav-left">
+        <div class="menu-bars">
+          <span></span>
+          <span></span>
+        </div>
+        <span>MENU</span>
+      </div>
+
+      <div class="nav-center">
+        <div class="brand-title">Tana Camps</div>
+        <div class="brand-subtitle">EXPEDITIONS</div>
+      </div>
+
+      <div class="nav-right">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>SEARCH</span>
+      </div>
+    </nav>
+
+    <!-- Map Pill -->
+    <div class="hero-map-pill" id="heroMapPill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3"></circle>
+      </svg>
+      <span>SEE ON MAP</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       2 · STATEMENT SECTION
+       ============================================================ -->
+  <section class="statement-section" id="statementSection">
+    <div class="statement-wrapper">
+      <div class="label-rust">ELEPHANTS IN AFRICA</div>
+
+      <h2 class="statement-text" id="statementText">
+        <span class="statement-line">
+          THE <span class="photo-pill"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/a6ea3433-41c4-46b8-aac3-faefa9ad7558.jpg" alt="Savanna elephant"></span> LARGEST
+        </span>
+        <span class="statement-line">
+          LAND ANIMAL <span class="photo-pill"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/9152c213-6763-4147-83f3-b985e6c65a00.jpg" alt="Elephants at sunset"></span> ON
+        </span>
+        <span class="statement-line">
+          THE PLANET
+        </span>
+      </h2>
+
+      <!-- 66px Rust Line Emblem -->
+      <div class="emblem-wrapper">
+        <svg viewBox="0 0 66 66" fill="none" stroke="var(--color-rust)" stroke-width="1.2">
+          <!-- Outer Ring -->
+          <circle cx="33" cy="33" r="31" />
+          <!-- Inner Ring -->
+          <circle cx="33" cy="33" r="27" stroke-dasharray="2 3" />
+          <!-- Stylized Elephant Head -->
+          <path d="M33 18 C25 18 20 24 20 31 C20 37 24 40 27 42 C28 44 29 50 31 52 C32 53 34 53 35 52 C37 50 38 44 39 42 C42 40 46 37 46 31 C46 24 41 18 33 18 Z" />
+          <!-- Ears & Tusks -->
+          <path d="M22 25 C17 24 13 28 15 35 C17 40 21 41 23 40" stroke-linecap="round" />
+          <path d="M44 25 C49 24 53 28 51 35 C49 40 45 41 43 40" stroke-linecap="round" />
+          <path d="M28 44 C26 47 24 49 21 48" stroke-linecap="round" />
+          <path d="M38 44 C40 47 42 49 45 48" stroke-linecap="round" />
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3 · QUICK FACTS SECTION
+       ============================================================ -->
+  <section class="facts-section" id="factsSection">
+    <div class="facts-container">
+      <!-- Left Column: Title & Animated Play Badge -->
+      <div class="facts-col-left">
+        <div class="label-rust">ELEPHANT</div>
+
+        <h3 class="facts-title" id="factsTitle">
+          QUICK<br>FACTS<br>ABOUT<br>ELEPHANT
+        </h3>
+
+        <div class="play-badge-group">
+          <div class="play-badge">
+            <!-- 48 Radial Ticks SVG -->
+            <svg class="badge-ticks" viewBox="0 0 84 84">
+              <!-- Radial ticks generated dynamically via JS or rendered inline -->
+              <g id="radialTicksGroup" stroke="var(--color-rust)" stroke-width="1.2"></g>
+            </svg>
+            <div class="badge-play-btn">
+              <div class="play-triangle"></div>
+            </div>
+          </div>
+          <span class="play-caption">7 MINUTES</span>
+        </div>
+      </div>
+
+      <!-- Middle Column: Keystone Paragraph & Facts Table -->
+      <div class="facts-col-mid">
+        <p class="keystone-copy">
+          As ecosystem engineers, African bush elephants create waterholes, carve pathways through dense brush, and disperse seeds that germinate across vast migratory corridors. Their presence sustains hundreds of dependent flora and fauna species across the East African rift.
+        </p>
+
+        <div class="facts-table">
+          <div class="table-row">
+            <span class="row-label">Habitat</span>
+            <span class="row-value">Woodland and savanna</span>
+          </div>
+          <div class="table-row">
+            <span class="row-label">Scientific name</span>
+            <span class="row-value" style="font-style: italic;">Loxodonta africana</span>
+          </div>
+          <div class="table-row">
+            <span class="row-label">Adult weight</span>
+            <span class="row-value">2,000 – 6,300 kg</span>
+          </div>
+          <div class="table-row">
+            <span class="row-label">IUCN status</span>
+            <span class="row-value">Vulnerable</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Tall 2:3 Portrait with Parallax -->
+      <div class="facts-col-right" id="factsPortraitFrame">
+        <img 
+          src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/e665edf0-2b16-4b17-ada1-0b928af1dbfa.jpg" 
+          alt="Elephant head in profile with one long tusk" 
+          class="facts-portrait-img" 
+          id="factsPortraitImg"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       6 · Vanilla JS Motion & Interaction Engine
+       ============================================================ -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Generate 48 Radial Ticks on Play Badge
+      const ticksGroup = document.getElementById("radialTicksGroup");
+      if (ticksGroup) {
+        const cx = 42, cy = 42, r1 = 34, r2 = 39;
+        for (let i = 0; i < 48; i++) {
+          const angle = (i * 360 / 48) * (Math.PI / 180);
+          const x1 = cx + r1 * Math.cos(angle);
+          const y1 = cy + r1 * Math.sin(angle);
+          const x2 = cx + r2 * Math.cos(angle);
+          const y2 = cy + r2 * Math.sin(angle);
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", x1.toFixed(2));
+          line.setAttribute("y1", y1.toFixed(2));
+          line.setAttribute("x2", x2.toFixed(2));
+          line.setAttribute("y2", y2.toFixed(2));
+          ticksGroup.appendChild(line);
+        }
+      }
+
+      // 2. Kinetic Letter Split Helper
+      function splitTextToChars(element, staggerMs, baseDelay = 0) {
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node.nodeValue.trim().length > 0) textNodes.push(node);
+        }
+
+        let charIndex = 0;
+        textNodes.forEach(tNode => {
+          const text = tNode.nodeValue;
+          const frag = document.createDocumentFragment();
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const span = document.createElement("span");
+            span.className = "char-span";
+            span.textContent = char;
+            span.style.transitionDelay = `${(baseDelay + charIndex * staggerMs).toFixed(0)}ms`;
+            frag.appendChild(span);
+            charIndex++;
+          }
+          tNode.parentNode.replaceChild(frag, tNode);
+        });
+        return charIndex;
+      }
+
+      // Split Hero Title "ELEPHANT" (95ms stagger)
+      const heroTitle = document.getElementById("heroTitle");
+      if (heroTitle) {
+        splitTextToChars(heroTitle, 95, 300);
+      }
+
+      // Split Statement Title (26ms stagger in reading order)
+      const statementText = document.getElementById("statementText");
+      if (statementText) {
+        splitTextToChars(statementText, 26, 0);
+      }
+
+      // Split Quick Facts Title (30ms stagger)
+      const factsTitle = document.getElementById("factsTitle");
+      if (factsTitle) {
+        splitTextToChars(factsTitle, 30, 0);
+      }
+
+      // 3. Stagger Table Rows in Section 3
+      const tableRows = document.querySelectorAll(".table-row");
+      tableRows.forEach((row, idx) => {
+        row.style.transitionDelay = `${400 + idx * 90}ms`;
+      });
+
+      // 4. Hero Load Animation Sequence
+      window.addEventListener("load", () => {
+        const bgPhoto = document.getElementById("heroBgPhoto");
+        const eyebrow = document.getElementById("heroEyebrow");
+        const nav = document.getElementById("heroNav");
+        const mapPill = document.getElementById("heroMapPill");
+
+        if (bgPhoto) bgPhoto.classList.add("loaded");
+        if (eyebrow) eyebrow.classList.add("revealed");
+        if (nav) nav.classList.add("revealed");
+        if (heroTitle) heroTitle.classList.add("revealed");
+        if (mapPill) mapPill.classList.add("revealed");
+      });
+
+      // 5. Scroll-linked Parallax & Paper Melt
+      const heroStage = document.getElementById("heroStage");
+      const heroMelt = document.getElementById("heroMelt");
+      const heroCutout = document.getElementById("heroCutout");
+      const heroBgPhoto = document.getElementById("heroBgPhoto");
+      const factsPortraitImg = document.getElementById("factsPortraitImg");
+
+      function updateScrollEffects(scrollY) {
+        const vh = window.innerHeight;
+
+        // Hero Parallax & Melting
+        if (scrollY <= vh * 1.5) {
+          const progress = Math.min(1, Math.max(0, scrollY / (vh * 0.65)));
+          
+          // Stage drifts down at 0.32x scroll
+          if (heroStage) {
+            heroStage.style.transform = `translate3d(0, ${(scrollY * 0.32).toFixed(1)}px, 0)`;
+          }
+
+          // Bottom paper gradient grows 34% -> 100% and opacity up to 1
+          if (heroMelt) {
+            const heightPct = 34 + progress * 66;
+            const opacityVal = Math.min(1, 0.34 + progress * 0.66);
+            heroMelt.style.height = `${heightPct.toFixed(1)}%`;
+            heroMelt.style.opacity = opacityVal.toFixed(2);
+          }
+
+          // Photo and cut-out blur up to 6px
+          const blurPx = (progress * 6).toFixed(1);
+          if (heroBgPhoto) {
+            heroBgPhoto.style.filter = `blur(${blurPx}px)`;
+          }
+          if (heroCutout) {
+            heroCutout.style.filter = `blur(${blurPx}px)`;
+          }
+        }
+
+        // Section 3 Portrait Parallax (drifts ±7%)
+        const factsSection = document.getElementById("factsSection");
+        if (factsSection && factsPortraitImg) {
+          const rect = factsSection.getBoundingClientRect();
+          if (rect.top < vh && rect.bottom > 0) {
+            const centerDist = (rect.top + rect.height / 2) - (vh / 2);
+            const driftPercent = (centerDist / vh) * 7;
+            factsPortraitImg.style.transform = `scale(1) translate3d(0, ${driftPercent.toFixed(1)}%, 0)`;
+          }
+        }
+      }
+
+      // 6. Section Scroll Observers (Reveals)
+      const statementSection = document.getElementById("statementSection");
+      const factsSection = document.getElementById("factsSection");
+
+      const statementObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            statementSection.classList.add("revealed");
+            statementObserver.unobserve(statementSection);
+          }
+        });
+      }, { threshold: 0.35 });
+
+      if (statementSection) statementObserver.observe(statementSection);
+
+      const factsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            factsSection.classList.add("revealed");
+            factsObserver.unobserve(factsSection);
+          }
+        });
+      }, { threshold: 0.25 });
+
+      if (factsSection) factsObserver.observe(factsSection);
+
+      // 7. Recorder Mode (?rec=1) Deterministic Driver
+      const urlParams = new URLSearchParams(window.location.search);
+      const isRecorderMode = urlParams.get("rec") === "1";
+
+      if (isRecorderMode) {
+        console.info("[Recorder Mode Active] Deterministic translation loop engaged.");
+        document.body.style.overflow = "hidden";
+        document.body.style.height = "100vh";
+
+        const totalDuration = 6500; // 6.5s
+        const startTime = performance.now();
+
+        function getDeterministicScrollY(elapsedMs) {
+          const sec = elapsedMs / 1000;
+          const vh = window.innerHeight;
+
+          // Keyframes:
+          // 0 -> 1.95s: hold at 0
+          if (sec < 1.95) return 0;
+          // 1.95 -> 3.35s: glide to Section 2 (1 vh)
+          if (sec < 3.35) {
+            const t = (sec - 1.95) / (3.35 - 1.95);
+            const ease = 0.5 - 0.5 * Math.cos(Math.PI * t);
+            return ease * vh;
+          }
+          // 3.35 -> 4.25s: hold at Section 2
+          if (sec < 4.25) return vh;
+          // 4.25 -> 5.55s: glide to Section 3 (2 vh)
+          if (sec < 5.55) {
+            const t = (sec - 4.25) / (5.55 - 4.25);
+            const ease = 0.5 - 0.5 * Math.cos(Math.PI * t);
+            return vh + ease * vh;
+          }
+          // 5.55s -> hold at Section 3
+          return vh * 2;
+        }
+
+        // Programmatic reveals at 0, 2.65s, 4.85s
+        setTimeout(() => {
+          if (statementSection) statementSection.classList.add("revealed");
+        }, 2650);
+
+        setTimeout(() => {
+          if (factsSection) factsSection.classList.add("revealed");
+        }, 4850);
+
+        function recorderLoop(now) {
+          const elapsed = now - startTime;
+          const virtualScroll = getDeterministicScrollY(elapsed);
+          
+          // Translate page content
+          window.scrollTo(0, virtualScroll);
+          updateScrollEffects(virtualScroll);
+
+          if (elapsed < totalDuration + 500) {
+            requestAnimationFrame(recorderLoop);
+          }
+        }
+        requestAnimationFrame(recorderLoop);
+      } else {
+        // Native Scroll Listener
+        let ticking = false;
+        window.addEventListener("scroll", () => {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              updateScrollEffects(window.scrollY);
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }, { passive: true });
+      }
+    });
+  </script>
+</body>
+</html>
