@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Local-Scope Documentation & Architecture Spec"
+    url: "https://github.com/wlkcsh/local-scope/blob/main/docs/SPEC.md"
+    about: "Review the system specification, telemetry data models, and replay budgets."

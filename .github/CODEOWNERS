@@ -1,0 +1,19 @@
+# Global fallback owner
+* @wlkcsh
+
+# Backend, Parser & API
+/backend/ @wlkcsh
+
+# Frontend, UI & Radar Canvas
+/frontend/ @wlkcsh
+
+# Deployment & Docker configurations
+/deploy/ @wlkcsh
+docker-compose.yml @wlkcsh
+
+# Documentation & Specifications
+/docs/ @wlkcsh
+README.md @wlkcsh
+
+# GitHub Workflows & Repository Configuration
+/.github/ @wlkcsh

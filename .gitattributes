@@ -1,2 +1,52 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# ==============================================================================
+# Local-Scope .gitattributes
+# ==============================================================================
+
+# Auto-detect text files and normalize line endings to LF across all platforms
+* text=auto eol=lf
+
+# Windows scripts (if present)
+*.bat eol=crlf
+*.cmd eol=crlf
+
+# Source Code & Config
+*.py text eol=lf diff=python
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.sh text eol=lf
+
+# Binary Assets (Prevent line ending conversion and text diffs)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.svg text eol=lf
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# CS2 Demos & Compressed Archives
+*.dem binary
+*.dem.gz binary
+*.dem.zst binary
+*.dem.bz2 binary
+*.gz binary
+*.tar binary
+*.zip binary
+*.zst binary
+
+# SQLite Databases & Replay Blobs
+*.db binary
+*.sqlite binary
+*.sqlite3 binary

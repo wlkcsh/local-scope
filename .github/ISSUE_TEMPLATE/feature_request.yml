@@ -1,0 +1,48 @@
+name: "✨ Feature Request"
+description: "Suggest a new idea, analysis mechanic, or UI enhancement for Local-Scope."
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping make Local-Scope better! Please describe the proposed feature or metric enhancement below.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      options:
+        - "Aim & Mechanics Analysis (Time-to-Damage, Crosshair placement, Counter-strafing)"
+        - "Tactical & Round Intelligence (Mistake detection, Trade kills, Utility usage)"
+        - "2D Radar Replay Experience (Canvas overlays, scrubbing, heatmaps, trajectories)"
+        - "Team & Club Management (Player comparison, Leaderboards, Multi-match trends)"
+        - "Performance & Ingestion Architecture"
+        - "UI / UX Polish"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement or Goal
+      description: What challenge or missing capability does this feature address?
+      placeholder: "e.g., As an IGL or coach, I want to filter rounds by bomb site executed..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution / User Experience
+      description: How should this feature look, feel, or behave?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative designs, metrics, or workarounds you've explored.
+    validations:
+      required: false

@@ -1,0 +1,57 @@
+name: "🎯 CS2 Demo Parsing Issue"
+description: "Report an anomaly with CS2 demo parsing, tick alignment, telemetry loss, or crash during ingestion."
+title: "[Demo Parser]: "
+labels: ["parser", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template when a `.dem` file fails to parse, crashes during ingestion, exhibits telemetry discrepancies (e.g. tick misalignment, missing kills or flashes), or generates incorrect metrics.
+
+  - type: dropdown
+    id: map
+    attributes:
+      label: CS2 Map
+      description: On which map did this demo take place?
+      options:
+        - "de_mirage"
+        - "de_inferno"
+        - "de_nuke"
+        - "de_dust2"
+        - "de_anubis"
+        - "de_ancient"
+        - "de_vertigo"
+        - "de_train"
+        - "Other / Workshop"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: demo-source
+    attributes:
+      label: Demo Source
+      options:
+        - "FACEIT Match Demo (gzip / bz2 / raw)"
+        - "Valve Official Matchmaking / Premier"
+        - "Custom / Scrim / Tournament Server (MatchZy, eBot, etc.)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: symptoms
+    attributes:
+      label: Parsing Anomaly & Symptoms
+      description: Describe the error or telemetry mismatch observed.
+      placeholder: |
+        e.g., Worker process timed out; round 14 utility event failed with KeyError; delta replay stream exceeded 100 KB budget.
+    validations:
+      required: true
+
+  - type: textarea
+    id: trace
+    attributes:
+      label: Stack Trace / Parser Log
+      description: Output from backend logs or demoparser2 worker execution.
+      render: shell
+    validations:
+      required: false
