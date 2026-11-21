@@ -562,16 +562,33 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     let teamColor: string;
     let textColor: string;
 
-    if (isCT) {
-      teamColor = "#38BDF8";
-      textColor = "#090D12";
+    const baseRgb: [number, number, number] = isCT
+      ? [56, 189, 248]
+      : hasC4
+      ? [180, 83, 9]
+      : [245, 158, 11];
+
+    if (pState.damageRatio > 0.02) {
+      // Dynamic damage flash: interpolate from team color to crimson/white-red
+      const targetRgb: [number, number, number] = pState.damageRatio > 0.65 ? [254, 202, 202] : [239, 68, 68];
+      const factor = Math.min(1, pState.damageRatio * 1.15);
+      const r = Math.round(baseRgb[0] + (targetRgb[0] - baseRgb[0]) * factor);
+      const g = Math.round(baseRgb[1] + (targetRgb[1] - baseRgb[1]) * factor);
+      const b = Math.round(baseRgb[2] + (targetRgb[2] - baseRgb[2]) * factor);
+      teamColor = `rgb(${r},${g},${b})`;
+      textColor = pState.damageRatio > 0.25 ? "#FFFFFF" : isCT ? "#090D12" : hasC4 ? "#FFFFFF" : "#090D12";
     } else {
-      if (hasC4) {
-        teamColor = "#B45309"; // Dark Amber / Burnt Orange for bomb carrier
-        textColor = "#FFFFFF"; // Crisp white number for high contrast
-      } else {
-        teamColor = "#F59E0B"; // Bright Amber
+      if (isCT) {
+        teamColor = "#38BDF8";
         textColor = "#090D12";
+      } else {
+        if (hasC4) {
+          teamColor = "#B45309"; // Dark Amber / Burnt Orange for bomb carrier
+          textColor = "#FFFFFF"; // Crisp white number for high contrast
+        } else {
+          teamColor = "#F59E0B"; // Bright Amber
+          textColor = "#090D12";
+        }
       }
     }
 
@@ -624,7 +641,29 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       ctx.stroke();
     }
 
-    // B. Rotated Directional Pointer + Pure Circle Disc Body
+    // C. Bullet Damage Impact Shockwave & Hit Spark
+    if (pState.damageRatio > 0.05) {
+      const ripProgress = 1 - pState.damageRatio;
+      const ripRadius = PIN_RADIUS + 2 + ripProgress * 7;
+      ctx.beginPath();
+      ctx.arc(sx, sy, ripRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(239, 68, 68, ${pState.damageRatio * 0.85})`;
+      ctx.lineWidth = Math.max(1, 1.8 * pState.damageRatio);
+      ctx.stroke();
+
+      // Sharp micro hit-spark at the instant of impact
+      if (pState.damageRatio > 0.35) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${pState.damageRatio * 0.9})`;
+        ctx.lineWidth = 1.5;
+        const hs = 4;
+        ctx.beginPath();
+        ctx.moveTo(sx - hs, sy); ctx.lineTo(sx + hs, sy);
+        ctx.moveTo(sx, sy - hs); ctx.lineTo(sx, sy + hs);
+        ctx.stroke();
+      }
+    }
+
+    // D. Rotated Directional Pointer + Pure Circle Disc Body
     ctx.save();
     ctx.translate(sx, sy);
     if (typeof ctx.rotate === "function") ctx.rotate(-pState.yawRad);

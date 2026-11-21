@@ -120,6 +120,12 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
               }
             }
 
+            const isDamaged =
+              track &&
+              isAlive &&
+              currentFrame > 0 &&
+              (track.hp[currentFrame] ?? 100) < (track.hp[currentFrame - 1] ?? 100);
+
             return (
               <button
                 key={pidx}
@@ -127,6 +133,8 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
                 className={`w-full h-[42px] min-h-[42px] max-h-[42px] flex items-center justify-between px-2.5 py-1 rounded-lg border text-left transition-colors ${
                   !isAlive
                     ? "bg-obsidian-deep/60 border-obsidian-border/50 opacity-65 hover:opacity-85"
+                    : isDamaged
+                    ? "bg-rose-950/60 border-rose-500/90 text-white shadow-md shadow-rose-500/30"
                     : isSelected
                     ? isCT
                       ? "bg-blue-950/60 border-blue-400 text-white shadow-md shadow-blue-500/20"
@@ -186,6 +194,8 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
                     className={`text-[11px] font-mono font-bold leading-none ${
                       !isAlive
                         ? "text-slate-500"
+                        : isDamaged
+                        ? "text-rose-400 font-black animate-pulse"
                         : hp > 50
                         ? "text-emerald-400"
                         : hp > 20
