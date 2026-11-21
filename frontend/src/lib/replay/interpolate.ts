@@ -27,21 +27,6 @@ export interface SampledPlayerState {
 }
 
 /**
- * Catmull-Rom cubic spline interpolation for C1-continuous smooth movement
- */
-function catmullRom(p0: number, p1: number, p2: number, p3: number, t: number): number {
-  const t2 = t * t;
-  const t3 = t2 * t;
-  return (
-    0.5 *
-    (2 * p1 +
-      (-p0 + p2) * t +
-      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-      (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
-  );
-}
-
-/**
  * Samples and interpolates a player's track at a continuous playhead frame.
  * Returns null if the player is dead or the track is empty.
  */
@@ -56,14 +41,12 @@ export function sampleTrackAt(
   }
 
   const i = Math.max(0, Math.min(Math.floor(playhead), track.n - 1));
-  const iPrev = Math.max(0, i - 1);
   const iNext = Math.min(i + 1, track.n - 1);
-  const iNextNext = Math.min(i + 2, track.n - 1);
   const a = Math.max(0, Math.min(1, playhead - i));
 
-  // Catmull-Rom spline interpolation eliminates robotic straight-line kinks
-  const wx = catmullRom(track.x[iPrev], track.x[i], track.x[iNext], track.x[iNextNext], a) * q.pos;
-  const wy = catmullRom(track.y[iPrev], track.y[i], track.y[iNext], track.y[iNextNext], a) * q.pos;
+  // Linear interpolation between sampled 8 Hz frames prevents cubic spline ringing/overshoot
+  const wx = (track.x[i] + (track.x[iNext] - track.x[i]) * a) * q.pos;
+  const wy = (track.y[i] + (track.y[iNext] - track.y[i]) * a) * q.pos;
 
   const proj = project(mapName, wx, wy, 0);
 
