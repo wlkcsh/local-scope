@@ -137,19 +137,19 @@ export function sampleNadeAt(
 ): SampledNadeState | null {
   if (playhead < nade.f0) return null;
 
+  const flightLen = nade.x.length;
+  const flightEnd = nade.det ? nade.det[0] : nade.f0 + Math.max(0, flightLen - 1);
   const detStart = nade.det ? nade.det[0] : Infinity;
-  const detEnd = nade.det ? nade.det[3] : Infinity;
+  const detEnd = nade.det ? nade.det[3] : flightEnd;
 
   if (playhead > detEnd) return null; // Expired
 
-  const inFlight = playhead >= nade.f0 && playhead <= detStart;
+  const inFlight = playhead >= nade.f0 && playhead <= flightEnd;
   const activeDetonation = nade.det != null && playhead >= detStart && playhead <= detEnd;
 
   let currentPx = 0;
   let currentPy = 0;
   let trail: { px: number; py: number }[] = [];
-
-  const flightLen = nade.x.length;
   if (flightLen > 0) {
     const localF = Math.max(0, Math.min(playhead - nade.f0, flightLen - 1));
     const i = Math.floor(localF);

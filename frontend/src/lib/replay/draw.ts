@@ -164,23 +164,42 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
         const totalDuration = detEnd - detStart;
         const elapsed = playhead - detStart;
         const bloom = easeOutCubic(elapsed / 8); // bloom over ~1s
-        const r = toCanvasRadius(144) * (0.3 + 0.7 * bloom);
+        const r = toCanvasRadius(160) * (0.3 + 0.7 * bloom);
         const remainingRatio = Math.max(0, 1 - elapsed / totalDuration);
 
-        // Core fill
+        // Core volumetric radial gradient
+        const grad = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r);
+        grad.addColorStop(0, `rgba(226, 232, 240, ${sample.alpha * 0.88})`);
+        grad.addColorStop(0.5, `rgba(186, 200, 218, ${sample.alpha * 0.76})`);
+        grad.addColorStop(0.85, `rgba(148, 163, 184, ${sample.alpha * 0.50})`);
+        grad.addColorStop(1, `rgba(100, 116, 139, ${sample.alpha * 0.15})`);
+
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(180, 195, 210, ${sample.alpha * 0.76})`;
+        ctx.fillStyle = grad;
         ctx.fill();
 
-        // Soft team/smoke contour
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = `rgba(220, 230, 245, ${sample.alpha * 0.9})`;
+        // Subtle organic volumetric cloud lobes for authentic CS2 silhouette
+        for (let lobe = 0; lobe < 3; lobe++) {
+          const angle = (lobe * (Math.PI * 2)) / 3 + (detStart % 7);
+          const lobeDist = r * 0.32;
+          const lx = cx + Math.cos(angle) * lobeDist;
+          const ly = cy + Math.sin(angle) * lobeDist;
+          ctx.beginPath();
+          ctx.arc(lx, ly, r * 0.62, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(203, 213, 225, ${sample.alpha * 0.22})`;
+          ctx.fill();
+        }
+
+        // Crisp tactical boundary contour
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = `rgba(226, 232, 240, ${sample.alpha * 0.55})`;
         ctx.stroke();
 
-        // Perimeter countdown timer arc
+        // Broadcast countdown timer arc
         if (elapsed > 4) {
-          ctx.strokeStyle = elapsed > totalDuration - 28 ? "#f59e0b" : "rgba(255, 255, 255, 0.75)";
+          const isExpiring = elapsed > totalDuration - 28;
+          ctx.strokeStyle = isExpiring ? "#F59E0B" : "rgba(255, 255, 255, 0.85)";
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(cx, cy, r - 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * remainingRatio);
@@ -774,8 +793,8 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
 
   // 3. In-Flight Grenade Badges with Vector Glyph & Thrower Slot Chip
   for (const nade of round.nades) {
-    const detStart = nade.det ? nade.det[0] : Infinity;
-    if (playhead >= nade.f0 && playhead <= detStart) {
+    const flightEnd = nade.det ? nade.det[0] : nade.f0 + Math.max(0, nade.x.length - 1);
+    if (playhead >= nade.f0 && playhead <= flightEnd) {
       const sample = sampleNadeAt(nade, playhead, q, mapName);
       if (sample && sample.inFlight) {
         const gx = toScreenX(sample.px);

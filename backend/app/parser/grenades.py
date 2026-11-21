@@ -93,11 +93,41 @@ def process_round_grenades(
         nade_type = normalize_nade_type(sorted_g.iloc[0].get("grenade_type", "he"))
 
         f0 = max(0, (first_tick - round_t0) // 8)
-        
-        # Sample trajectory every 8 ticks
+
+        # 1. Match with detonation event
+        # Priority A: exact entity ID match
+        matched_det = None
+        for det in detonations:
+            if det.get("entityid") is not None and det["entityid"] == gid:
+                matched_det = det
+                break
+
+        # Priority B: match by event type and time window (thrown before detonation, det within entity lifetime + 32 ticks)
+        if not matched_det:
+            for det in detonations:
+                ev_type = det["event"].split("_")[0]
+                if nade_type in ev_type or ev_type in nade_type:
+                    if (first_tick - 16) <= det["tick"] <= (last_tick + 32):
+                        matched_det = det
+                        break
+
+        # Priority C: match by proximity to last_tick (e.g. for flash/HE where entity despawns at explosion)
+        if not matched_det:
+            for det in detonations:
+                ev_type = det["event"].split("_")[0]
+                if nade_type in ev_type or ev_type in nade_type:
+                    if abs(det["tick"] - last_tick) < 48:
+                        matched_det = det
+                        break
+
+        # 2. Flight ends when the grenade detonates (or when entity disappears)
+        flight_end_tick = min(last_tick, matched_det["tick"]) if matched_det else last_tick
+        f_flight_end = max(f0, min(round_nf, ((flight_end_tick - round_t0) // 8) + 1))
+
+        # Sample trajectory every 8 ticks during in-flight phase only
         frame_pts_x = []
         frame_pts_y = []
-        for f_idx in range(f0, min(round_nf, ((last_tick - round_t0) // 8) + 1)):
+        for f_idx in range(f0, f_flight_end):
             target_tk = round_t0 + f_idx * 8
             # Find closest sample in group
             closest_idx = (sorted_g["tick"] - target_tk).abs().idxmin()
@@ -115,26 +145,42 @@ def process_round_grenades(
             continue
 
         det_tuple = None
-        # Match with detonation near last_tick
-        for det in detonations:
-            if abs(det["tick"] - last_tick) < 32:  # within 0.5s
-                dx = float(det["x"])
-                dy = float(det["y"])
-                if math.isnan(dx) or math.isnan(dy):
-                    continue
-                det_frame = max(0, (det["tick"] - round_t0) // 8)
+        if matched_det:
+            dx = float(matched_det["x"])
+            dy = float(matched_det["y"])
+            if not math.isnan(dx) and not math.isnan(dy):
+                det_frame = max(0, (matched_det["tick"] - round_t0) // 8)
                 qx = int(round(dx / q_pos))
                 qy = int(round(dy / q_pos))
-                
+
                 # Expiration calculation
-                end_frame = det_frame + 2
                 if nade_type == "smoke":
-                    end_frame = det_frame + 144  # CS2 smokes last ~18s (144 frames)
+                    # Check for explicit smokegrenade_expired event
+                    exp_tick = None
+                    for exp in expirations:
+                        if exp.get("entityid") is not None and exp["entityid"] == gid:
+                            exp_tick = exp["tick"]
+                            break
+                    if exp_tick is None and last_tick > matched_det["tick"] + 128:
+                        exp_tick = last_tick
+                    if exp_tick is not None:
+                        end_frame = max(det_frame + 2, (exp_tick - round_t0) // 8)
+                    else:
+                        end_frame = det_frame + 144  # CS2 smokes last ~18s (144 frames at 8 Hz)
                 elif nade_type == "molotov":
-                    end_frame = det_frame + 56   # Molotovs last ~7s (56 frames)
-                
+                    exp_tick = None
+                    for exp in expirations:
+                        if exp.get("entityid") is not None and exp["entityid"] == gid:
+                            exp_tick = exp["tick"]
+                            break
+                    if exp_tick is not None:
+                        end_frame = max(det_frame + 2, (exp_tick - round_t0) // 8)
+                    else:
+                        end_frame = det_frame + 56   # Molotovs last ~7s (56 frames at 8 Hz)
+                else:
+                    end_frame = det_frame + 4  # Flash / HE shockwave lasts ~0.5s (4 frames)
+
                 det_tuple = (det_frame, qx, qy, min(round_nf, end_frame))
-                break
 
         nades_out.append(Nade(
             t=nade_type,
