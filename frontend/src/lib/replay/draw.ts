@@ -138,17 +138,6 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     }
   }
 
-  // Check recent shots to trigger shooting muzzle flash (within last 3 frames / ~375ms)
-  const shootingPlayers = new Set<number>();
-  if (round.shots && round.shots.frames && round.shots.frames.length > 0) {
-    const shotFrames = round.shots.frames;
-    const shotPidxs = round.shots.pidx;
-    const startIndex = lowerBound(shotFrames, playhead - 3);
-    for (let s = startIndex; s < shotFrames.length; s++) {
-      if (shotFrames[s] > playhead) break;
-      shootingPlayers.add(shotPidxs[s]);
-    }
-  }
 
   // =========================================================================
   // PASS 1: WORLD-SPACE PASS (Transforms with Camera Zoom & Pan)
@@ -386,7 +375,7 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     ctx.restore();
   }
 
-  // 7. Shot Tracers (World Space)
+  // 7. Shot Tracers (World Space) - Full visible bullet trajectories on every shot
   const TRACER_DECAY_FRAMES = 5;
   if (round.shots && round.shots.frames && round.shots.frames.length > 0) {
     const shotFrames = round.shots.frames;
@@ -400,30 +389,83 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       if (shooterState) {
         ctx.save();
         if (shooterState.layer !== activeLayer) ctx.globalAlpha = 0.25;
+
         const elapsed = playhead - sf;
         const decayProgress = Math.max(0, Math.min(1, elapsed / TRACER_DECAY_FRAMES));
         const alpha = Math.max(0, 1 - decayProgress);
+
+        // Weapon-specific effective bullet trajectory range in CS2 world units
+        const wIdx = shooterState.weaponIdx;
+        const wName = (replay.weapons[wIdx] || "").toLowerCase();
+        let worldRange = 850;
+        if (wName.includes("awp") || wName.includes("ssg") || wName.includes("scar") || wName.includes("g3sg1")) {
+          worldRange = 1350;
+        } else if (wName.includes("ak") || wName.includes("m4") || wName.includes("famas") || wName.includes("galil") || wName.includes("aug") || wName.includes("sg")) {
+          worldRange = 950;
+        } else if (wName.includes("glock") || wName.includes("usp") || wName.includes("p250") || wName.includes("deagle") || wName.includes("cz") || wName.includes("tec") || wName.includes("revolver")) {
+          worldRange = 650;
+        }
+
         const sx = toCanvasX(shooterState.px);
         const sy = toCanvasY(shooterState.py);
-        const tracerLen = toCanvasRadius(65);
 
-        const ex = sx + tracerLen * Math.cos(shooterState.yawRad);
-        const ey = sy - tracerLen * Math.sin(shooterState.yawRad);
+        // Angle in canvas world space
+        const cosYaw = Math.cos(shooterState.yawRad);
+        const sinYaw = Math.sin(shooterState.yawRad);
 
+        // Offset start to gun muzzle (~45 world units outside player center)
+        const startWorldOffset = 45;
+        const startLen = toCanvasRadius(startWorldOffset);
+        const endLen = toCanvasRadius(worldRange);
+
+        // Trajectory points: from muzzle outward along line of aim
+        const x0 = sx + startLen * cosYaw;
+        const y0 = sy - startLen * sinYaw;
+        const x1 = sx + endLen * cosYaw;
+        const y1 = sy - endLen * sinYaw;
+
+        const shooterSide = getPlayerSide(pidx);
+        const isShooterCT = shooterSide === "CT";
+
+        // 1. Outer Team-Tinted Bullet Glow
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(ex, ey);
-        ctx.strokeStyle = `rgba(255, 235, 120, ${alpha * 0.75})`;
-        ctx.lineWidth = Math.max(1, 1.5 * (1 - decayProgress * 0.5));
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.strokeStyle = isShooterCT
+          ? `rgba(56, 189, 248, ${alpha * 0.75})`
+          : `rgba(245, 158, 11, ${alpha * 0.75})`;
+        ctx.lineWidth = Math.max(1.2, 2.8 * (1 - decayProgress * 0.4));
         ctx.stroke();
 
-        if (decayProgress < 0.4) {
-          const sparkAlpha = (1 - decayProgress / 0.4) * 0.85;
+        // 2. Inner High-Energy Hot Laser Core
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.strokeStyle = isShooterCT
+          ? `rgba(240, 249, 255, ${alpha * 0.95})`
+          : `rgba(255, 251, 235, ${alpha * 0.95})`;
+        ctx.lineWidth = Math.max(1, 1.4 * (1 - decayProgress * 0.4));
+        ctx.stroke();
+
+        // 3. Muzzle Flash Burst at Gun Tip
+        if (decayProgress < 0.35) {
+          const mAlpha = (1 - decayProgress / 0.35) * 0.9;
           ctx.beginPath();
-          ctx.arc(sx, sy, 2.5 * (1 - decayProgress), 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 245, 180, ${sparkAlpha})`;
+          ctx.arc(x0, y0, 3.5 * (1 - decayProgress / 0.35), 0, Math.PI * 2);
+          ctx.fillStyle = isShooterCT
+            ? `rgba(224, 242, 254, ${mAlpha})`
+            : `rgba(254, 240, 138, ${mAlpha})`;
           ctx.fill();
         }
+
+        // 4. Bullet Head Tracer Spark at Tip
+        if (decayProgress < 0.6) {
+          ctx.beginPath();
+          ctx.arc(x1, y1, 2 * (1 - decayProgress * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fill();
+        }
+
         ctx.restore();
       }
     }
@@ -515,7 +557,6 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     const isCT = side === "CT";
     const slot = playerSlotMap.get(pidx) || (pidx + 1);
     const isSelected = pidx === selectedPidx;
-    const isShooting = shootingPlayers.has(pidx);
     const hasC4 = pidx === c4CarrierPidx;
 
     let teamColor: string;
@@ -601,13 +642,6 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     ctx.fill();
     ctx.stroke();
 
-    // Subtle shooting spark at nose tip (NO giant yellow triangle)
-    if (isShooting) {
-      ctx.fillStyle = "#FEF08A";
-      ctx.beginPath();
-      ctx.arc(PIN_RADIUS + 4, 0, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
 
     // Pure round circle disc body
     ctx.beginPath();
