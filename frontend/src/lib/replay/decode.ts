@@ -9,6 +9,7 @@ export interface DecodedTrack {
   w: Uint8Array; // active weapon index for all frames 0..nf-1
   l: Uint8Array; // layer 0|1 for all frames 0..nf-1
   blinded: Uint8Array; // 1 if blinded, 0 otherwise for all frames 0..nf-1
+  fl?: [number, number][]; // [startFrame, durationFrames] for continuous degree of blindness
 }
 
 export interface DecodedNade {
@@ -111,7 +112,7 @@ export function decodeTrack(track: Track, nf: number): DecodedTrack {
   const l = expandChanges(track.l, nf, 0);
   const blinded = expandBlinded(track.fl, nf);
 
-  return { n, x, y, yaw, hp, w, l, blinded };
+  return { n, x, y, yaw, hp, w, l, blinded, fl: track.fl };
 }
 
 export function decodeNade(nade: Nade): DecodedNade {

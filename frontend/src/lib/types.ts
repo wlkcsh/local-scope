@@ -199,3 +199,41 @@ export interface MapCalibration {
   upper_radar: string;
   lower_radar?: string | null;
 }
+
+export interface BombsiteZone {
+  site: "A" | "B";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  labelX: number;
+  labelY: number;
+}
+
+export const MAP_BOMBSITES: Record<string, BombsiteZone[]> = {
+  de_dust2: [
+    { site: "A", x: 770, y: 120, w: 95, h: 80, labelX: 785, labelY: 135 },
+    { site: "B", x: 160, y: 110, w: 90, h: 90, labelX: 175, labelY: 125 },
+  ],
+  de_mirage: [
+    { site: "A", x: 570, y: 730, w: 90, h: 90, labelX: 585, labelY: 745 },
+    { site: "B", x: 170, y: 110, w: 85, h: 85, labelX: 185, labelY: 125 },
+  ],
+  de_inferno: [
+    { site: "A", x: 620, y: 340, w: 85, h: 85, labelX: 635, labelY: 355 },
+    { site: "B", x: 340, y: 140, w: 85, h: 85, labelX: 355, labelY: 155 },
+  ],
+  de_anubis: [
+    { site: "A", x: 780, y: 260, w: 90, h: 85, labelX: 795, labelY: 275 },
+    { site: "B", x: 310, y: 500, w: 85, h: 85, labelX: 325, labelY: 515 },
+  ],
+  de_ancient: [
+    { site: "A", x: 650, y: 350, w: 85, h: 85, labelX: 665, labelY: 365 },
+    { site: "B", x: 330, y: 290, w: 85, h: 85, labelX: 345, labelY: 305 },
+  ],
+  de_nuke: [
+    { site: "A", x: 540, y: 450, w: 80, h: 80, labelX: 555, labelY: 465 },
+    { site: "B", x: 540, y: 450, w: 80, h: 80, labelX: 555, labelY: 465 },
+  ],
+};
+

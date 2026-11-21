@@ -20,6 +20,9 @@ export interface SampledPlayerState {
   weaponIdx: number;
   layer: number;
   blinded: boolean;
+  flashRatio: number; // 0.0 .. 1.0 (exact degree of blindness)
+  flashDurationSec?: number;
+  flashRemainingSec?: number;
   alive: boolean;
 }
 
@@ -70,6 +73,26 @@ export function sampleTrackAt(
   const yStep = ((track.yaw[i] + arc * smoothA) % 120 + 120) % 120;
   const yawRad = (yStep * 3 * Math.PI) / 180;
 
+  let flashRatio = 0;
+  let flashDurationSec = 0;
+  let flashRemainingSec = 0;
+
+  if (track.fl && track.fl.length > 0) {
+    for (let f = 0; f < track.fl.length; f++) {
+      const [startF, durF] = track.fl[f];
+      if (playhead >= startF && playhead <= startF + durF && durF > 0) {
+        flashRatio = Math.max(0, Math.min(1, (startF + durF - playhead) / durF));
+        flashDurationSec = durF / 8;
+        flashRemainingSec = Math.max(0, (startF + durF - playhead) / 8);
+        break;
+      }
+    }
+  } else if ((track.blinded[i] ?? 0) === 1) {
+    flashRatio = 1.0;
+    flashDurationSec = 2.0;
+    flashRemainingSec = 1.0;
+  }
+
   return {
     px: proj.px,
     py: proj.py,
@@ -77,7 +100,10 @@ export function sampleTrackAt(
     hp: track.hp[i] ?? 100,
     weaponIdx: track.w[i] ?? 0,
     layer: track.l[i] ?? 0,
-    blinded: (track.blinded[i] ?? 0) === 1,
+    blinded: (track.blinded[i] ?? 0) === 1 || flashRatio > 0.02,
+    flashRatio,
+    flashDurationSec,
+    flashRemainingSec,
     alive: true,
   };
 }
