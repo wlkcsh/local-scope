@@ -1,4 +1,4 @@
-import { ReplayFile, Side, MAP_BOMBSITES } from "../types";
+import { ReplayFile, Side } from "../types";
 import { DecodedRound } from "./decode";
 import { sampleTrackAt, sampleNadeAt, SampledPlayerState } from "./interpolate";
 import { MAP_CALIBRATION, project } from "./project";
@@ -16,33 +16,9 @@ export interface RenderState {
 }
 
 // ==========================================
-// Pre-computed Unit Shapes (Zero runtime allocation)
+// Pre-computed Unit Shapes & Glyphs
 // ==========================================
-const PIN_RADIUS = 11;
-const PIN_TIP = PIN_RADIUS * 1.6;
-const TANGENT_ANGLE = Math.acos(PIN_RADIUS / PIN_TIP); // ~51.3° exact continuous tangent
-
-const TEARDROP_PATH: Path2D | null = typeof Path2D !== "undefined" ? (() => {
-  const p = new Path2D();
-  p.moveTo(PIN_TIP, 0);
-  p.lineTo(
-    PIN_RADIUS * Math.cos(TANGENT_ANGLE),
-    PIN_RADIUS * Math.sin(TANGENT_ANGLE)
-  );
-  p.arc(0, 0, PIN_RADIUS, TANGENT_ANGLE, Math.PI * 2 - TANGENT_ANGLE, false);
-  p.closePath();
-  return p;
-})() : null;
-
-const MUZZLE_PATH: Path2D | null = typeof Path2D !== "undefined" ? (() => {
-  const p = new Path2D();
-  p.moveTo(PIN_TIP + 1, 0);
-  p.lineTo(PIN_TIP + 14, -4);
-  p.lineTo(PIN_TIP + 11, 0);
-  p.lineTo(PIN_TIP + 14, 4);
-  p.closePath();
-  return p;
-})() : null;
+const PIN_RADIUS = 9;
 
 // Centered in [-5, 5] space for 8px in-flight utility badges
 const GRENADE_GLYPHS: Record<string, Path2D> | null = typeof Path2D !== "undefined" ? {
@@ -58,38 +34,6 @@ const GRENADE_GLYPHS: Record<string, Path2D> | null = typeof Path2D !== "undefin
   ),
   decoy: new Path2D("M-3.5,0 A3.5,3.5 0 1,0 3.5,0 A3.5,3.5 0 1,0 -3.5,0"),
 } : null;
-
-function renderTeardrop(ctx: CanvasRenderingContext2D): void {
-  if (TEARDROP_PATH) {
-    ctx.fill(TEARDROP_PATH);
-    ctx.stroke(TEARDROP_PATH);
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(PIN_TIP, 0);
-    ctx.lineTo(
-      PIN_RADIUS * Math.cos(TANGENT_ANGLE),
-      PIN_RADIUS * Math.sin(TANGENT_ANGLE)
-    );
-    ctx.arc(0, 0, PIN_RADIUS, TANGENT_ANGLE, Math.PI * 2 - TANGENT_ANGLE, false);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-}
-
-function renderMuzzle(ctx: CanvasRenderingContext2D): void {
-  if (MUZZLE_PATH) {
-    ctx.fill(MUZZLE_PATH);
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(PIN_TIP + 1, 0);
-    ctx.lineTo(PIN_TIP + 14, -4);
-    ctx.lineTo(PIN_TIP + 11, 0);
-    ctx.lineTo(PIN_TIP + 14, 4);
-    ctx.closePath();
-    ctx.fill();
-  }
-}
 
 const GLYPH_COLORS: Record<string, string> = {
   smoke: "#E2E8F0",
@@ -215,65 +159,7 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
   ctx.scale(zoom, zoom);
   ctx.translate(-canvasSize / 2, -canvasSize / 2);
 
-  // 1. Bombsite Plant Zones & Broadcast [A] / [B] Badges
-  const siteZones = MAP_BOMBSITES[mapName];
-  if (siteZones && siteZones.length > 0) {
-    ctx.save();
-    for (const zone of siteZones) {
-      const zx = toCanvasX(zone.x);
-      const zy = toCanvasY(zone.y);
-      const zw = zone.w * scaleFactor;
-      const zh = zone.h * scaleFactor;
-
-      // Dashed boundary around plant area
-      ctx.strokeStyle = zone.site === "A" ? "rgba(249, 115, 22, 0.75)" : "rgba(239, 68, 68, 0.75)";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 3]);
-      if (typeof ctx.strokeRect === "function") {
-        ctx.strokeRect(zx, zy, zw, zh);
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(zx, zy);
-        ctx.lineTo(zx + zw, zy);
-        ctx.lineTo(zx + zw, zy + zh);
-        ctx.lineTo(zx, zy + zh);
-        ctx.closePath();
-        ctx.stroke();
-      }
-      ctx.fillStyle = zone.site === "A" ? "rgba(249, 115, 22, 0.08)" : "rgba(239, 68, 68, 0.08)";
-      ctx.fillRect(zx, zy, zw, zh);
-      ctx.setLineDash([]);
-
-      // Broadcast Site Badge [A] or [B]
-      const badgeSize = 18 * scaleFactor;
-      const lx = toCanvasX(zone.labelX);
-      const ly = toCanvasY(zone.labelY);
-      ctx.fillStyle = zone.site === "A" ? "#ea580c" : "#dc2626";
-      ctx.fillRect(lx, ly, badgeSize, badgeSize);
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1;
-      if (typeof ctx.strokeRect === "function") {
-        ctx.strokeRect(lx, ly, badgeSize, badgeSize);
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(lx, ly);
-        ctx.lineTo(lx + badgeSize, ly);
-        ctx.lineTo(lx + badgeSize, ly + badgeSize);
-        ctx.lineTo(lx, ly + badgeSize);
-        ctx.closePath();
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `bold ${Math.max(9, Math.round(11 * scaleFactor))}px Inter, system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(zone.site, lx + badgeSize / 2, ly + badgeSize / 2);
-    }
-    ctx.restore();
-  }
-
-  // 2. Smokes (Volumetric bloom + countdown timer arc)
+  // 1. Smokes (Volumetric bloom + countdown timer arc)
   for (const nade of round.nades) {
     if (nade.t !== "smoke" || !nade.det) continue;
     const detStart = nade.det[0];
@@ -519,7 +405,7 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
         const alpha = Math.max(0, 1 - decayProgress);
         const sx = toCanvasX(shooterState.px);
         const sy = toCanvasY(shooterState.py);
-        const tracerLen = toCanvasRadius(540);
+        const tracerLen = toCanvasRadius(65);
 
         const ex = sx + tracerLen * Math.cos(shooterState.yawRad);
         const ey = sy - tracerLen * Math.sin(shooterState.yawRad);
@@ -527,14 +413,14 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
         ctx.beginPath();
         ctx.moveTo(sx, sy);
         ctx.lineTo(ex, ey);
-        ctx.strokeStyle = `rgba(255, 235, 120, ${alpha * 0.9})`;
-        ctx.lineWidth = Math.max(1, 2 * (1 - decayProgress * 0.5));
+        ctx.strokeStyle = `rgba(255, 235, 120, ${alpha * 0.75})`;
+        ctx.lineWidth = Math.max(1, 1.5 * (1 - decayProgress * 0.5));
         ctx.stroke();
 
-        if (decayProgress < 0.45) {
-          const sparkAlpha = (1 - decayProgress / 0.45) * 0.95;
+        if (decayProgress < 0.4) {
+          const sparkAlpha = (1 - decayProgress / 0.4) * 0.85;
           ctx.beginPath();
-          ctx.arc(sx, sy, 3.5 * (1 - decayProgress), 0, Math.PI * 2);
+          ctx.arc(sx, sy, 2.5 * (1 - decayProgress), 0, Math.PI * 2);
           ctx.fillStyle = `rgba(255, 245, 180, ${sparkAlpha})`;
           ctx.fill();
         }
@@ -627,11 +513,26 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
 
     const side = getPlayerSide(pidx);
     const isCT = side === "CT";
-    const teamColor = isCT ? "#38BDF8" : "#F59E0B";
     const slot = playerSlotMap.get(pidx) || (pidx + 1);
     const isSelected = pidx === selectedPidx;
     const isShooting = shootingPlayers.has(pidx);
     const hasC4 = pidx === c4CarrierPidx;
+
+    let teamColor: string;
+    let textColor: string;
+
+    if (isCT) {
+      teamColor = "#38BDF8";
+      textColor = "#090D12";
+    } else {
+      if (hasC4) {
+        teamColor = "#B45309"; // Dark Amber / Burnt Orange for bomb carrier
+        textColor = "#FFFFFF"; // Crisp white number for high contrast
+      } else {
+        teamColor = "#F59E0B"; // Bright Amber
+        textColor = "#090D12";
+      }
+    }
 
     const sx = Math.round(toScreenX(pState.px));
     const sy = Math.round(toScreenY(pState.py));
@@ -647,7 +548,7 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       ctx.fillStyle = isCT ? "rgba(56, 189, 248, 0.18)" : "rgba(245, 158, 11, 0.18)";
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.arc(0, 0, 64, -0.48, 0.48); // ~55° FOV
+      ctx.arc(0, 0, 60, -0.48, 0.48); // ~55° FOV
       ctx.closePath();
       ctx.fill();
       ctx.restore();
@@ -667,33 +568,52 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       ctx.stroke();
     }
 
-    // B. Rotated Teardrop Body + Muzzle Flash
+    // B. Rotated Directional Pointer + Pure Circle Disc Body
     ctx.save();
     ctx.translate(sx, sy);
     if (typeof ctx.rotate === "function") ctx.rotate(-pState.yawRad);
 
-    if (isShooting) {
-      ctx.fillStyle = "#FEF08A";
-      renderMuzzle(ctx);
-    }
-
+    // Directional notch attached to outer perimeter (pointing along yaw)
+    ctx.beginPath();
+    ctx.moveTo(PIN_RADIUS + 3.5, 0);
+    ctx.lineTo(PIN_RADIUS * 0.7, -3.2);
+    ctx.lineTo(PIN_RADIUS * 0.7, 3.2);
+    ctx.closePath();
     ctx.fillStyle = teamColor;
     ctx.strokeStyle = "#090D12";
-    ctx.lineWidth = 1.75;
+    ctx.lineWidth = 1.5;
     ctx.lineJoin = "round";
-    renderTeardrop(ctx);
+    ctx.fill();
+    ctx.stroke();
+
+    // Subtle shooting spark at nose tip (NO giant yellow triangle)
+    if (isShooting) {
+      ctx.fillStyle = "#FEF08A";
+      ctx.beginPath();
+      ctx.arc(PIN_RADIUS + 4, 0, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Pure round circle disc body
+    ctx.beginPath();
+    ctx.arc(0, 0, PIN_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = teamColor;
+    ctx.strokeStyle = "#090D12";
+    ctx.lineWidth = 1.5;
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
 
     // C. Low-HP damage deficit arc (only drawn if hp < 100)
     if (pState.hp < 100) {
       const start = -Math.PI / 2;
       ctx.strokeStyle = "rgba(9, 13, 18, 0.65)";
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2.0;
       ctx.beginPath();
       ctx.arc(
         sx,
         sy,
-        PIN_RADIUS - 2,
+        PIN_RADIUS - 1.8,
         start + Math.PI * 2 * (pState.hp / 100),
         start + Math.PI * 2
       );
@@ -704,12 +624,12 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     if (pState.flashRatio > 0.02) {
       // Depleting white countdown timer ring
       ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2.0;
       ctx.beginPath();
       ctx.arc(
         sx,
         sy,
-        PIN_RADIUS + 3.5,
+        PIN_RADIUS + 3,
         -Math.PI / 2,
         -Math.PI / 2 + Math.PI * 2 * pState.flashRatio
       );
@@ -718,7 +638,7 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       // Top-right shoulder starburst spark
       ctx.fillStyle = "#FEF9C3";
       ctx.beginPath();
-      ctx.arc(sx + PIN_RADIUS * 0.78, sy - PIN_RADIUS * 0.78, 3, 0, Math.PI * 2);
+      ctx.arc(sx + PIN_RADIUS * 0.78, sy - PIN_RADIUS * 0.78, 2.8, 0, Math.PI * 2);
       ctx.fill();
 
       // Whiteout wash over pin proportional to blind degree
@@ -730,34 +650,14 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       }
     }
 
-    // E. C4 Carrier Badge (bottom-right shoulder, blinking red LED)
-    if (hasC4) {
-      const bx = sx + PIN_RADIUS * 0.78;
-      const by = sy + PIN_RADIUS * 0.78;
-      ctx.fillStyle = "#EF4444";
-      ctx.strokeStyle = "#090D12";
-      ctx.lineWidth = 1.25;
-      ctx.beginPath();
-      ctx.arc(bx, by, 4.3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      if (Math.floor(playhead * 3) % 2 === 0) {
-        ctx.fillStyle = "#FFFFFF";
-        ctx.beginPath();
-        ctx.arc(bx, by, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // F. Centered Unrotated Player Number (Bold 1..5 in dark #090D12)
-    ctx.fillStyle = "#090D12";
-    ctx.font = "800 11px Inter, system-ui, -apple-system, sans-serif";
+    // E. Centered Unrotated Player Number
+    ctx.fillStyle = textColor;
+    ctx.font = "800 10.5px Inter, system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(slot), sx, sy + 0.5);
 
-    // G. Name + Weapon Label (for selected player)
+    // F. Name + Weapon Label (for selected player)
     if (isSelected) {
       const playerDef = replay.players[pidx];
       const playerName = playerDef ? playerDef.name : `P${slot}`;
@@ -769,9 +669,9 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
 
       ctx.lineWidth = 3;
       ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
-      ctx.strokeText(playerName, sx, sy - 16);
+      ctx.strokeText(playerName, sx, sy - 15);
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(playerName, sx, sy - 16);
+      ctx.fillText(playerName, sx, sy - 15);
 
       if (weaponName) {
         ctx.font = "9px monospace";
