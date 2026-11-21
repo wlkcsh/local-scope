@@ -534,26 +534,41 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
       }
     }
 
-    const sx = Math.round(toScreenX(pState.px));
-    const sy = Math.round(toScreenY(pState.py));
+    const sx = toScreenX(pState.px);
+    const sy = toScreenY(pState.py);
 
     ctx.save();
     if (pState.layer !== activeLayer) ctx.globalAlpha = 0.25;
 
-    // A. Selected / Focused: 55° FOV cone + concentric white halo ring
-    if (isSelected) {
-      ctx.save();
-      ctx.translate(sx, sy);
-      if (typeof ctx.rotate === "function") ctx.rotate(-pState.yawRad);
-      ctx.fillStyle = isCT ? "rgba(56, 189, 248, 0.18)" : "rgba(245, 158, 11, 0.18)";
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, 60, -0.48, 0.48); // ~55° FOV
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+    // A. Vision Area (FOV Cone) for all living players
+    ctx.save();
+    ctx.translate(sx, sy);
+    if (typeof ctx.rotate === "function") ctx.rotate(-pState.yawRad);
 
-      // Concentric selection halo
+    const fovRadius = isSelected ? 52 : 32;
+    const fovAngle = 0.52; // ~60° field of view (±30° spread)
+
+    ctx.fillStyle = isCT
+      ? isSelected
+        ? "rgba(56, 189, 248, 0.22)"
+        : "rgba(56, 189, 248, 0.12)"
+      : hasC4
+      ? isSelected
+        ? "rgba(180, 83, 9, 0.25)"
+        : "rgba(180, 83, 9, 0.15)"
+      : isSelected
+      ? "rgba(245, 158, 11, 0.22)"
+      : "rgba(245, 158, 11, 0.12)";
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, fovRadius, -fovAngle, fovAngle);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // B. Concentric selection halo (only for selected player)
+    if (isSelected) {
       const pulse = 1 + 0.12 * Math.sin(playhead * 1.5);
       ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
       ctx.lineWidth = 3.5;
@@ -690,8 +705,8 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
     if (playhead >= nade.f0 && playhead <= detStart) {
       const sample = sampleNadeAt(nade, playhead, q, mapName);
       if (sample && sample.inFlight) {
-        const gx = Math.round(toScreenX(sample.px));
-        const gy = Math.round(toScreenY(sample.py));
+        const gx = toScreenX(sample.px);
+        const gy = toScreenY(sample.py);
         const throwerSide = getPlayerSide(nade.p);
         const throwerColor = throwerSide === "CT" ? "#38BDF8" : "#F59E0B";
         const throwerSlot = playerSlotMap.get(nade.p) || (nade.p + 1);
