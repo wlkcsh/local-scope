@@ -370,28 +370,28 @@ export function RadarCanvas({ replay, decodedRound, clock }: RadarCanvasProps) {
         />
 
         {/* Floating Canvas Controls (Zoom & Reset) */}
-        <div className="radar-overlay-dark absolute bottom-3 right-3 flex items-center gap-1 p-1 rounded-lg bg-[#12161e]/90 border border-white/15 backdrop-blur-md shadow-lg z-20">
+        <div className="radar-overlay-dark absolute bottom-3 right-3 flex items-center gap-0.5 p-1 rounded-lg bg-[#12161e]/90 border border-white/15 backdrop-blur-md shadow-xl z-20">
           <button
             onClick={handleZoomIn}
             title="Zoom In"
-            className="p-1 rounded text-slate-300 hover:text-white hover:bg-obsidian-card transition-colors"
+            className="p-1.5 rounded text-slate-200 hover:text-white hover:bg-white/10 active:bg-white/20 transition-all flex items-center justify-center"
           >
-            <ZoomIn className="w-3.5 h-3.5" />
+            <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={handleZoomOut}
             title="Zoom Out"
-            className="p-1 rounded text-slate-300 hover:text-white hover:bg-obsidian-card transition-colors"
+            className="p-1.5 rounded text-slate-200 hover:text-white hover:bg-white/10 active:bg-white/20 transition-all flex items-center justify-center"
           >
-            <ZoomOut className="w-3.5 h-3.5" />
+            <ZoomOut className="w-4 h-4" />
           </button>
           {zoom > 1 && (
             <button
               onClick={resetView}
               title="Reset Zoom"
-              className="p-1 rounded text-slate-300 hover:text-white hover:bg-obsidian-card transition-colors font-mono text-[10px] flex items-center gap-1 px-1.5"
+              className="p-1.5 rounded text-slate-200 hover:text-white hover:bg-white/10 active:bg-white/20 transition-all font-mono text-[11px] flex items-center gap-1 px-2"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>{zoom.toFixed(1)}x</span>
             </button>
           )}

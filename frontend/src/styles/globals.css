@@ -77,37 +77,37 @@ html.editorial .tactical-grain {
 }
 
 /* Editorial Archive 3-Tier Surface Elevation */
-html.editorial .bg-obsidian-surface,
-html.editorial [class*="bg-obsidian-surface"]:not(.radar-overlay-dark) {
+html.editorial .bg-obsidian-surface:not(.radar-overlay-dark):not(.radar-overlay-dark *),
+html.editorial [class*="bg-obsidian-surface"]:not(.radar-overlay-dark):not(.radar-overlay-dark *) {
   background-color: #F7F2E7 !important;
   border-color: rgba(67, 40, 42, 0.14) !important;
 }
 
-html.editorial .bg-obsidian-card,
-html.editorial [class*="bg-obsidian-card"]:not(.radar-overlay-dark) {
+html.editorial .bg-obsidian-card:not(.radar-overlay-dark):not(.radar-overlay-dark *),
+html.editorial [class*="bg-obsidian-card"]:not(.radar-overlay-dark):not(.radar-overlay-dark *) {
   background-color: #F3ECE0 !important;
   border-color: rgba(67, 40, 42, 0.15) !important;
 }
 
-html.editorial .bg-obsidian-subtle,
-html.editorial [class*="bg-obsidian-subtle"]:not(.radar-overlay-dark) {
+html.editorial .bg-obsidian-subtle:not(.radar-overlay-dark):not(.radar-overlay-dark *),
+html.editorial [class*="bg-obsidian-subtle"]:not(.radar-overlay-dark):not(.radar-overlay-dark *) {
   background-color: #E5DBC7 !important;
   border-color: rgba(67, 40, 42, 0.16) !important;
 }
 
-html.editorial .bg-obsidian-deep,
-html.editorial [class*="bg-obsidian-deep"]:not(.radar-overlay-dark) {
+html.editorial .bg-obsidian-deep:not(.radar-overlay-dark):not(.radar-overlay-dark *),
+html.editorial [class*="bg-obsidian-deep"]:not(.radar-overlay-dark):not(.radar-overlay-dark *) {
   background-color: #EAE1CE !important;
 }
 
-html.editorial .bg-surface,
-html.editorial [class*="bg-surface"]:not(.radar-overlay-dark) {
+html.editorial .bg-surface:not(.radar-overlay-dark):not(.radar-overlay-dark *),
+html.editorial [class*="bg-surface"]:not(.radar-overlay-dark):not(.radar-overlay-dark *) {
   background-color: #F7F2E7 !important;
   border-color: rgba(67, 40, 42, 0.14) !important;
 }
 
-html.editorial .border-obsidian-border,
-html.editorial [class*="border-obsidian-border"]:not(.radar-overlay-dark) {
+html.editorial .border-obsidian-border:not(.radar-overlay-dark):not(.radar-overlay-dark *),
+html.editorial [class*="border-obsidian-border"]:not(.radar-overlay-dark):not(.radar-overlay-dark *) {
   border-color: rgba(67, 40, 42, 0.15) !important;
 }
 
@@ -263,12 +263,17 @@ html.editorial .radar-overlay-dark {
 }
 
 html.editorial .radar-overlay-dark button {
-  color: #CBD5E1 !important;
+  background-color: transparent !important;
+  color: #E2E8F0 !important;
 }
 
 html.editorial .radar-overlay-dark button:hover {
   color: #FFFFFF !important;
-  background-color: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.editorial .radar-overlay-dark button:active {
+  background-color: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Launch 2D replay button on cream paper */
