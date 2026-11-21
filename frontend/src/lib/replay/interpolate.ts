@@ -23,6 +23,8 @@ export interface SampledPlayerState {
   flashRatio: number; // 0.0 .. 1.0 (exact degree of blindness)
   flashDurationSec?: number;
   flashRemainingSec?: number;
+  damageRatio: number; // 0.0 .. 1.0 (recent bullet damage flash intensity)
+  recentDamageAmount: number; // HP lost in recent hit
   alive: boolean;
 }
 
@@ -76,6 +78,24 @@ export function sampleTrackAt(
     flashRemainingSec = 1.0;
   }
 
+  // Bullet damage detection & decay over a 2.5-frame (~310ms) window
+  let damageRatio = 0;
+  let recentDamageAmount = 0;
+  const DAMAGE_WINDOW_FRAMES = 2.5;
+
+  const fInt = Math.floor(playhead);
+  const lookbackMin = Math.max(0, fInt - 3);
+  for (let hf = fInt; hf >= lookbackMin; hf--) {
+    if (hf > 0 && track.hp[hf] < track.hp[hf - 1]) {
+      const elapsed = playhead - hf;
+      if (elapsed >= 0 && elapsed <= DAMAGE_WINDOW_FRAMES) {
+        damageRatio = Math.max(0, Math.min(1, 1.0 - elapsed / DAMAGE_WINDOW_FRAMES));
+        recentDamageAmount = track.hp[hf - 1] - track.hp[hf];
+        break;
+      }
+    }
+  }
+
   return {
     px: proj.px,
     py: proj.py,
@@ -87,6 +107,8 @@ export function sampleTrackAt(
     flashRatio,
     flashDurationSec,
     flashRemainingSec,
+    damageRatio,
+    recentDamageAmount,
     alive: true,
   };
 }

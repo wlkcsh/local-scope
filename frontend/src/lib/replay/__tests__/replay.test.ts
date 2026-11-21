@@ -212,4 +212,38 @@ describe("Replay Decoder Round-Trip & Expansion", () => {
     const sClear = sampleTrackAt(decoded, 16, mockReplay.q, "de_dust2");
     expect(sClear?.flashRatio).toBe(0);
   });
+
+  it("calculates continuous damageRatio and recent damage amount on bullet hits", () => {
+    const trackWithDamage = {
+      n: 20,
+      x: [0],
+      y: [0],
+      yaw: [0],
+      hp: [
+        [0, 100],
+        [5, 73],
+      ], // Hit at frame 5, took 27 damage
+      w: [[0, 1]],
+    };
+    const decoded = decodeTrack(trackWithDamage as any, 20);
+
+    // Before hit (frame 4)
+    const sBefore = sampleTrackAt(decoded, 4, mockReplay.q, "de_dust2");
+    expect(sBefore?.damageRatio).toBe(0);
+    expect(sBefore?.recentDamageAmount).toBe(0);
+
+    // Moment of hit (frame 5) -> 100% damage flash
+    const sHit = sampleTrackAt(decoded, 5, mockReplay.q, "de_dust2");
+    expect(sHit?.damageRatio).toBe(1.0);
+    expect(sHit?.recentDamageAmount).toBe(27);
+
+    // Decaying flash (frame 6.25, halfway through 2.5 frame window) -> 50%
+    const sDecay = sampleTrackAt(decoded, 6.25, mockReplay.q, "de_dust2");
+    expect(sDecay?.damageRatio).toBeCloseTo(0.5);
+    expect(sDecay?.recentDamageAmount).toBe(27);
+
+    // Decayed back to normal (frame 8) -> 0%
+    const sNormal = sampleTrackAt(decoded, 8, mockReplay.q, "de_dust2");
+    expect(sNormal?.damageRatio).toBe(0);
+  });
 });
