@@ -91,7 +91,8 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
 
         {/* 5 Fixed-Height Player Rows */}
         <div className="space-y-1 flex-1 flex flex-col justify-between pt-1">
-          {players.map(({ pidx, def }) => {
+          {players.map(({ pidx, def }, rosterIndex) => {
+            const slot = rosterIndex + 1;
             const track = decodedRound.tracks[pidx];
             const isAlive = track ? uiFrame < track.n : false;
             const currentFrame = track ? Math.min(uiFrame, track.n - 1) : 0;
@@ -100,6 +101,24 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
             const weaponName = replay.weapons[weaponIdx] || "";
             const isBlinded = track ? track.blinded[currentFrame] === 1 : false;
             const isSelected = selectedPidx === pidx;
+
+            // Check if player is carrying C4
+            const isPlantDone = decodedRound.bomb?.plant && uiFrame >= decodedRound.bomb.plant[0];
+            const hasC4 = !isCT && isAlive && !isPlantDone && (
+              weaponName.toLowerCase().includes("c4") ||
+              (decodedRound.bomb?.plant && decodedRound.bomb.plant[3] === pidx)
+            );
+
+            // Calculate exact remaining flash duration
+            let flashRemainSec = 0;
+            if (track?.fl && isBlinded && isAlive) {
+              for (const [startF, durF] of track.fl) {
+                if (uiFrame >= startF && uiFrame <= startF + durF && durF > 0) {
+                  flashRemainSec = Math.max(0, (startF + durF - uiFrame) / 8);
+                  break;
+                }
+              }
+            }
 
             return (
               <button
@@ -116,26 +135,38 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  {/* Alive Dot or Dead Skull */}
+                  {/* Alive Numbered Badge or Dead Skull */}
                   {isAlive ? (
                     <div
-                      className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                        isCT ? "bg-blue-500" : "bg-amber-500"
+                      className={`w-5 h-5 rounded-full flex items-center justify-center font-extrabold text-[11px] font-sans text-slate-950 flex-shrink-0 shadow-sm ${
+                        isCT
+                          ? "bg-sky-400 border border-slate-900"
+                          : "bg-amber-400 border border-slate-900"
                       }`}
-                    />
+                    >
+                      {slot}
+                    </div>
                   ) : (
-                    <Skull className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                    <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700/60 flex items-center justify-center flex-shrink-0">
+                      <Skull className="w-3 h-3 text-slate-500" />
+                    </div>
                   )}
 
                   {/* 2-line constant height name + weapon */}
                   <div className="flex flex-col min-w-0 justify-center h-[32px]">
                     <div className="flex items-center gap-1.5">
-                      <span className={`text-xs font-semibold truncate max-w-[125px] leading-tight ${!isAlive ? "text-slate-500 line-through" : ""}`}>
+                      <span className={`text-xs font-semibold truncate max-w-[110px] leading-tight ${!isAlive ? "text-slate-500 line-through" : ""}`}>
                         {def.name}
                       </span>
+                      {hasC4 && (
+                        <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-rose-600 text-white animate-pulse" title="Carrying C4">
+                          C4
+                        </span>
+                      )}
                       {isBlinded && isAlive && (
-                        <span title="Blinded">
+                        <span title={flashRemainSec > 0 ? `Blinded (${flashRemainSec.toFixed(1)}s)` : "Blinded"} className="flex items-center gap-0.5 text-amber-300 font-mono text-[9px] font-bold">
                           <EyeOff className="w-3 h-3 text-white animate-pulse" />
+                          {flashRemainSec > 0 ? `${flashRemainSec.toFixed(1)}s` : ""}
                         </span>
                       )}
                     </div>

@@ -131,6 +131,7 @@ describe("Replay Decoder Round-Trip & Expansion", () => {
       restore: vi.fn(),
       translate: vi.fn(),
       scale: vi.fn(),
+      rotate: vi.fn(),
       beginPath: vi.fn(),
       closePath: vi.fn(),
       moveTo: vi.fn(),
@@ -138,6 +139,8 @@ describe("Replay Decoder Round-Trip & Expansion", () => {
       arc: vi.fn(),
       fill: vi.fn(),
       fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      rect: vi.fn(),
       stroke: vi.fn(),
       fillText: vi.fn(),
       strokeText: vi.fn(),
@@ -170,5 +173,43 @@ describe("Replay Decoder Round-Trip & Expansion", () => {
         drawForeground(mockCtx, { ...baseState, playhead });
       }).not.toThrow();
     }
+  });
+
+  it("calculates continuous flashRatio degree of blindness", () => {
+    const trackWithFlash = {
+      n: 20,
+      x: [0],
+      y: [0],
+      yaw: [0],
+      hp: [[0, 100]],
+      w: [[0, 1]],
+      fl: [[5, 10]], // Flashed at frame 5 for 10 frames (frames 5..15)
+    };
+    const decoded = decodeTrack(trackWithFlash as any, 20);
+    expect(decoded.fl).toEqual([[5, 10]]);
+
+    // Before flash (frame 3)
+    const sBefore = sampleTrackAt(decoded, 3, mockReplay.q, "de_dust2");
+    expect(sBefore?.flashRatio).toBe(0);
+    expect(sBefore?.blinded).toBe(false);
+
+    // Exact moment of flash (frame 5) -> 100% blind
+    const sStart = sampleTrackAt(decoded, 5, mockReplay.q, "de_dust2");
+    expect(sStart?.flashRatio).toBe(1.0);
+    expect(sStart?.blinded).toBe(true);
+
+    // Halfway through flash (frame 10) -> 50% blind
+    const sMid = sampleTrackAt(decoded, 10, mockReplay.q, "de_dust2");
+    expect(sMid?.flashRatio).toBeCloseTo(0.5);
+    expect(sMid?.blinded).toBe(true);
+
+    // Almost recovered (frame 14) -> 10% blind
+    const sEnd = sampleTrackAt(decoded, 14, mockReplay.q, "de_dust2");
+    expect(sEnd?.flashRatio).toBeCloseTo(0.1);
+    expect(sEnd?.blinded).toBe(true);
+
+    // Fully recovered (frame 16) -> 0% blind
+    const sClear = sampleTrackAt(decoded, 16, mockReplay.q, "de_dust2");
+    expect(sClear?.flashRatio).toBe(0);
   });
 });
