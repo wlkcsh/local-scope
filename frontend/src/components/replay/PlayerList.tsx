@@ -138,17 +138,21 @@ export function PlayerList({ replay, decodedRound, filterSide }: PlayerListProps
                   {/* Alive Numbered Badge or Dead Skull */}
                   {isAlive ? (
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center font-extrabold text-[11px] font-sans text-slate-950 flex-shrink-0 shadow-sm ${
-                        isCT
-                          ? "bg-sky-400 border border-slate-900"
-                          : "bg-amber-400 border border-slate-900"
-                      }`}
+                      className="w-5 h-5 rounded-full flex items-center justify-center font-extrabold text-[11px] font-sans flex-shrink-0 shadow-sm border border-slate-900"
+                      style={{
+                        backgroundColor: isCT
+                          ? "#0284C7"
+                          : hasC4
+                          ? "#B45309"
+                          : "#D97706",
+                        color: "#FFFFFF",
+                      }}
                     >
                       {slot}
                     </div>
                   ) : (
                     <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700/60 flex items-center justify-center flex-shrink-0">
-                      <Skull className="w-3 h-3 text-slate-500" />
+                      <Skull className="w-3 h-3 text-slate-400" />
                     </div>
                   )}
 
