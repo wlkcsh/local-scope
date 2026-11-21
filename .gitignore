@@ -45,6 +45,8 @@ pnpm-debug.log*
 *.dem.gz
 *.dem.zst
 *.dem.bz2
+demos/
+/dust2-11-13-clutch*
 !**/tests/fixtures/.gitkeep
 
 # --- Databases, Replays & Runtime Output ---
