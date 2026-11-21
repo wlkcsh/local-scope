@@ -138,14 +138,23 @@ export function sampleNadeAt(
   if (playhead < nade.f0) return null;
 
   const flightLen = nade.x.length;
-  const flightEnd = nade.det ? nade.det[0] : nade.f0 + Math.max(0, flightLen - 1);
-  const detStart = nade.det ? nade.det[0] : Infinity;
-  const detEnd = nade.det ? nade.det[3] : flightEnd;
+  let effectiveFlightEnd = nade.det ? nade.det[0] : nade.f0 + Math.max(0, flightLen - 1);
+  if (!nade.det && flightLen > 3) {
+    for (let k = 1; k < flightLen - 2; k++) {
+      if (nade.x[k] === 0 && nade.y[k] === 0 && nade.x[k + 1] === 0 && nade.y[k + 1] === 0) {
+        effectiveFlightEnd = nade.f0 + k;
+        break;
+      }
+    }
+  }
+
+  const detStart = nade.det ? nade.det[0] : (nade.t === "he" || nade.t === "flash" ? effectiveFlightEnd : Infinity);
+  const detEnd = nade.det ? nade.det[3] : (nade.t === "he" || nade.t === "flash" ? effectiveFlightEnd + 8 : effectiveFlightEnd);
 
   if (playhead > detEnd) return null; // Expired
 
-  const inFlight = playhead >= nade.f0 && playhead <= flightEnd;
-  const activeDetonation = nade.det != null && playhead >= detStart && playhead <= detEnd;
+  const inFlight = playhead >= nade.f0 && playhead < effectiveFlightEnd;
+  const activeDetonation = playhead >= detStart && playhead <= detEnd;
 
   let currentPx = 0;
   let currentPy = 0;
@@ -178,12 +187,17 @@ export function sampleNadeAt(
   let alpha = 1;
   let progress = 0;
 
-  if (activeDetonation && nade.det) {
-    const detWorldX = nade.det[1] * q.pos;
-    const detWorldY = nade.det[2] * q.pos;
-    const detProj = project(mapName, detWorldX, detWorldY, 0);
-    detPx = detProj.px;
-    detPy = detProj.py;
+  if (activeDetonation) {
+    if (nade.det) {
+      const detWorldX = nade.det[1] * q.pos;
+      const detWorldY = nade.det[2] * q.pos;
+      const detProj = project(mapName, detWorldX, detWorldY, 0);
+      detPx = detProj.px;
+      detPy = detProj.py;
+    } else {
+      detPx = currentPx;
+      detPy = currentPy;
+    }
 
     const totalFrames = detEnd - detStart;
     const framesElapsed = playhead - detStart;

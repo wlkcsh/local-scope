@@ -247,54 +247,102 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
   }
 
   // 4. Flash and HE Detonation Shockwaves
-  const EXPLODE_FRAMES = 8;
   for (const nade of round.nades) {
     if (nade.t !== "flash" && nade.t !== "he") continue;
-    if (!nade.det) continue;
-    const detStart = nade.det[0];
-    const detEnd = detStart + EXPLODE_FRAMES;
-    if (playhead >= detStart && playhead <= detEnd) {
-      const sample = sampleNadeAt(nade, playhead, q, mapName);
-      if (sample && sample.detPx != null && sample.detPy != null) {
-        ctx.save();
-        const progress = Math.max(0, Math.min(1, (playhead - detStart) / EXPLODE_FRAMES));
-        const easeOut = easeOutCubic(progress);
-        const alpha = Math.max(0, 1 - progress);
-        const cx = toCanvasX(sample.detPx);
-        const cy = toCanvasY(sample.detPy);
+    const sample = sampleNadeAt(nade, playhead, q, mapName);
+    if (sample && sample.activeDetonation && sample.detPx != null && sample.detPy != null) {
+      ctx.save();
+      const progress = sample.progress; // 0..1
+      const easeOut = easeOutCubic(progress);
+      const alpha = Math.max(0, 1 - progress);
+      const cx = toCanvasX(sample.detPx);
+      const cy = toCanvasY(sample.detPy);
 
-        if (nade.t === "flash") {
-          const maxRadius = toCanvasRadius(130);
-          const r = 6 + easeOut * (maxRadius - 6);
-          ctx.beginPath();
-          ctx.arc(cx, cy, r, 0, Math.PI * 2);
-          ctx.lineWidth = Math.max(1, 2.5 * (1 - easeOut * 0.5));
-          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
-          ctx.stroke();
+      if (nade.t === "flash") {
+        const maxRadius = toCanvasRadius(180);
+        const r = 8 + easeOut * (maxRadius - 8);
 
-          if (progress < 0.35) {
-            const bloomAlpha = (1 - progress / 0.35) * 0.75;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 14 * (1 - progress / 0.35), 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(254, 249, 195, ${bloomAlpha})`;
-            ctx.fill();
-          }
-        } else {
-          const maxRadius = toCanvasRadius(100);
-          const r = 8 + easeOut * (maxRadius - 8);
-          ctx.beginPath();
-          ctx.arc(cx, cy, r, 0, Math.PI * 2);
-          ctx.lineWidth = Math.max(1, 3 * (1 - easeOut * 0.5));
-          ctx.strokeStyle = `rgba(239, 68, 68, ${alpha * 0.95})`;
-          ctx.stroke();
+        // Blinding white shockwave ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.lineWidth = Math.max(1, 3.5 * (1 - easeOut * 0.6));
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
+        ctx.stroke();
 
+        // Secondary cyan edge
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.92, 0, Math.PI * 2);
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.55})`;
+        ctx.stroke();
+
+        // Radiant initial burst flare
+        if (progress < 0.4) {
+          const bloomAlpha = (1 - progress / 0.4) * 0.9;
+          const bloomR = 18 * (1 - progress / 0.4);
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, bloomR);
+          grad.addColorStop(0, `rgba(255, 255, 255, ${bloomAlpha})`);
+          grad.addColorStop(0.6, `rgba(254, 249, 195, ${bloomAlpha * 0.8})`);
+          grad.addColorStop(1, `rgba(254, 240, 138, 0)`);
           ctx.beginPath();
-          ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(251, 146, 60, ${alpha * 0.35})`;
+          ctx.arc(cx, cy, bloomR, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
           ctx.fill();
         }
-        ctx.restore();
+      } else {
+        // High-explosive grenade blast
+        const maxRadius = toCanvasRadius(240);
+        const r = 10 + easeOut * (maxRadius - 10);
+
+        // 1. Primary fiery blast shockwave ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.lineWidth = Math.max(1.2, 3.5 * (1 - easeOut * 0.6));
+        ctx.strokeStyle = `rgba(239, 68, 68, ${alpha * 0.95})`;
+        ctx.stroke();
+
+        // 2. Trailing flame/dust wave
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.82, 0, Math.PI * 2);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `rgba(249, 115, 22, ${alpha * 0.75})`;
+        ctx.stroke();
+
+        // 3. Dense explosive fireball core
+        if (progress < 0.55) {
+          const coreProgress = progress / 0.55;
+          const coreAlpha = (1 - coreProgress);
+          const coreR = Math.max(4, r * 0.65 * (1 - coreProgress * 0.3));
+
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+          grad.addColorStop(0, `rgba(255, 255, 255, ${coreAlpha * 0.95})`);
+          grad.addColorStop(0.25, `rgba(254, 240, 138, ${coreAlpha * 0.9})`);
+          grad.addColorStop(0.6, `rgba(249, 115, 22, ${coreAlpha * 0.75})`);
+          grad.addColorStop(1, `rgba(220, 38, 38, 0)`);
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+
+        // 4. Radial shrapnel fragment bursts
+        if (progress < 0.5) {
+          const shrapnelAlpha = (1 - progress / 0.5) * 0.85;
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = `rgba(254, 215, 170, ${shrapnelAlpha})`;
+          for (let sp = 0; sp < 8; sp++) {
+            const angle = (sp * Math.PI) / 4 + 0.2;
+            const innerDist = r * 0.35;
+            const outerDist = r * 1.15;
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(angle) * innerDist, cy + Math.sin(angle) * innerDist);
+            ctx.lineTo(cx + Math.cos(angle) * outerDist, cy + Math.sin(angle) * outerDist);
+            ctx.stroke();
+          }
+        }
       }
+      ctx.restore();
     }
   }
 
@@ -793,8 +841,7 @@ export function drawForeground(ctx: CanvasRenderingContext2D, state: RenderState
 
   // 3. In-Flight Grenade Badges with Vector Glyph & Thrower Slot Chip
   for (const nade of round.nades) {
-    const flightEnd = nade.det ? nade.det[0] : nade.f0 + Math.max(0, nade.x.length - 1);
-    if (playhead >= nade.f0 && playhead <= flightEnd) {
+    if (playhead >= nade.f0) {
       const sample = sampleNadeAt(nade, playhead, q, mapName);
       if (sample && sample.inFlight) {
         const gx = toScreenX(sample.px);

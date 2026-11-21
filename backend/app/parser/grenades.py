@@ -24,6 +24,14 @@ GRENADE_TYPE_MAP = {
     "decoy": "decoy",
 }
 
+NADE_EVENT_MATCH = {
+    "smoke": ["smoke", "smokegrenade"],
+    "flash": ["flash", "flashbang"],
+    "he": ["he", "hegrenade"],
+    "molotov": ["inferno", "molotov", "incendiary"],
+    "decoy": ["decoy"],
+}
+
 
 def normalize_nade_type(raw_type: str) -> str:
     clean = str(raw_type).lower().strip()
@@ -103,19 +111,20 @@ def process_round_grenades(
                 break
 
         # Priority B: match by event type and time window (thrown before detonation, det within entity lifetime + 32 ticks)
+        allowed_events = NADE_EVENT_MATCH.get(nade_type, [nade_type])
         if not matched_det:
             for det in detonations:
-                ev_type = det["event"].split("_")[0]
-                if nade_type in ev_type or ev_type in nade_type:
+                ev_type = det["event"].split("_")[0].lower()
+                if any(a in ev_type or ev_type in a for a in allowed_events):
                     if (first_tick - 16) <= det["tick"] <= (last_tick + 32):
                         matched_det = det
                         break
 
-        # Priority C: match by proximity to last_tick (e.g. for flash/HE where entity despawns at explosion)
+        # Priority C: match by proximity to last_tick (e.g. for flash/HE/molotov where entity despawns at explosion)
         if not matched_det:
             for det in detonations:
-                ev_type = det["event"].split("_")[0]
-                if nade_type in ev_type or ev_type in nade_type:
+                ev_type = det["event"].split("_")[0].lower()
+                if any(a in ev_type or ev_type in a for a in allowed_events):
                     if abs(det["tick"] - last_tick) < 48:
                         matched_det = det
                         break
@@ -178,9 +187,28 @@ def process_round_grenades(
                     else:
                         end_frame = det_frame + 56   # Molotovs last ~7s (56 frames at 8 Hz)
                 else:
-                    end_frame = det_frame + 4  # Flash / HE shockwave lasts ~0.5s (4 frames)
+                    end_frame = det_frame + 8  # Flash / HE shockwave lasts ~1s (8 frames at 8 Hz)
 
                 det_tuple = (det_frame, qx, qy, min(round_nf, end_frame))
+        elif nade_type in ("he", "flash", "molotov", "smoke") and len(frame_pts_x) >= 2:
+            # Trajectory landing detection fallback if demo dropped detonation event
+            land_idx = len(frame_pts_x) - 1
+            for k in range(1, len(frame_pts_x) - 2):
+                if frame_pts_x[k] == frame_pts_x[k + 1] == frame_pts_x[k + 2] and frame_pts_y[k] == frame_pts_y[k + 1] == frame_pts_y[k + 2]:
+                    land_idx = k
+                    break
+            det_frame = f0 + land_idx
+            qx = frame_pts_x[land_idx]
+            qy = frame_pts_y[land_idx]
+            if nade_type == "smoke":
+                dur = 144
+            elif nade_type == "molotov":
+                dur = 56
+            else:
+                dur = 8
+            det_tuple = (det_frame, qx, qy, min(round_nf, det_frame + dur))
+            frame_pts_x = frame_pts_x[:land_idx + 1]
+            frame_pts_y = frame_pts_y[:land_idx + 1]
 
         nades_out.append(Nade(
             t=nade_type,
